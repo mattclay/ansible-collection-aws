@@ -45,7 +45,7 @@ class AwsAvailabilityZoneFactsModule:
 
     def run(self):
         if not HAS_BOTO3:
-            return 'the boto3 python module is required to use this module', None, None
+            return 'the boto3 python module is required to use this module', {}
 
         region, ec2_url, aws_connect_kwargs = get_aws_connection_info(self.module, boto3=True)
 
