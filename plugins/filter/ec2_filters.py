@@ -1,5 +1,5 @@
 # Copyright (C) 2016 Matt Clay <matt@mystile.com>
-# GNU General Public License v3.0+ (see ansible/LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 
 def ec2_az_vpc_subnets(zones, subnet, name):
