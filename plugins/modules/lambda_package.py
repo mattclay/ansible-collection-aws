@@ -5,6 +5,51 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+DOCUMENTATION = '''
+---
+module: lambda_package
+short_description: Package files in a ZIP archive for deployment as Lambda functions
+description:
+    - Package files in a ZIP archive for deployment as Lambda functions.
+author:
+    - Matt Clay (@mattclay) <matt@mystile.com>
+requirements:
+    - boto3
+    - botocore
+options:
+    src:
+        description:
+            - Path to the source files to package.
+        type: path
+        required: true
+    dest:
+        description:
+            - Path to the package that should be created.
+        type: path
+        required: true
+    include:
+        description:
+            - A list of patterns to include in the package.
+        type: list
+    exclude:
+        description:
+            - A list of patterns to exclude from the package.
+        type: list
+    rename:
+        description:
+            - Mapping of files that should be renamed in the package.
+        type: dict
+'''
+
+EXAMPLES = '''
+lambda_package:
+    src: my_lambda_functions
+    dest: my_lambda_functions.zip
+    include:
+        - "my_lambda_functions/*.py"
+        - "my_lambda_functions/data/*.json"
+'''
+
 import errno
 import os
 import zipfile

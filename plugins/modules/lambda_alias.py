@@ -5,6 +5,61 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+DOCUMENTATION = '''
+---
+module: lambda_alias
+short_description: Manage Lambda function aliases
+description:
+    - Manage Lambda function aliases.
+author:
+    - Matt Clay (@mattclay) <matt@mystile.com>
+requirements:
+    - boto3
+    - botocore
+options:
+    function_name:
+        description:
+            - The name of the Lambda function to alias.
+        type: str
+        required: true
+    state:
+        description:
+            - If C(present) the alias will be created if it does not exist.
+            - If C(absent) the alias will be deleted if it exists.
+        choices:
+            - present
+            - absent
+        default: present
+        type: str
+    version:
+        description:
+            - The version of the lambda function to alias.
+        required: true
+        type: str
+    name:
+        description:
+            - The name of the alias.
+        required: true
+        type: str
+    description:
+        description:
+            - The description of the alias.
+        type: str
+extends_documentation_fragment:
+    - aws
+    - ec2
+'''
+
+EXAMPLES = '''
+lambda_alias:
+    region: us-east-1
+    state: present
+    name: prod
+    description: Production Alias
+    function_name: my_function
+    version: 3
+'''
+
 try:
     import botocore
 except ImportError:

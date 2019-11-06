@@ -5,6 +5,26 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+DOCUMENTATION = '''
+---
+module: aws_account_facts
+short_description: Return information about the AWS account
+description:
+    - Return information about the AWS account.
+author:
+    - Matt Clay (@mattclay) <matt@mystile.com>
+requirements:
+    - boto3
+    - botocore
+extends_documentation_fragment:
+    - aws
+    - ec2
+'''
+
+EXAMPLES = '''
+aws_account_facts:
+'''
+
 from ansible.module_utils.basic import (
     AnsibleModule,
 )

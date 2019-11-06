@@ -5,6 +5,66 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+DOCUMENTATION = '''
+---
+module: lambda_layer
+short_description: Manage Lambda layers
+description:
+    - Manage Lambda layers.
+author:
+    - Matt Clay (@mattclay) <matt@mystile.com>
+requirements:
+    - boto3
+    - botocore
+options:
+    name:
+        description:
+            - The name of the layer.
+        type: str
+        required: true
+    description:
+        description:
+            - The description of the layer.
+        type: str
+    compatible_runtimes:
+        description:
+            - A list of runtimes compatible with the layer.
+        type: list
+    path:
+        description:
+            - The local path to the contents of the layer.
+        required: true
+        type: path
+    license_info:
+        description:
+            - The license of the layer.
+        type: str
+    state:
+        description:
+            - If C(present) the layer will be created if it does not exist.
+            - If C(absent) the layer will be removed if it exists.
+        choices:
+            - present
+            - absent
+        default: present
+        type: str
+extends_documentation_fragment:
+    - aws
+    - ec2
+'''
+
+EXAMPLES = '''
+lambda_layer:
+    name: python_requirements
+    description: Python requirements
+    compatible_runtimes:
+        - python3.7
+    path: requirements.zip
+    license_info: GPL-3.0-or-later
+    region: us-east-1
+    state: present
+'''
+
 import base64
 import hashlib
 import datetime

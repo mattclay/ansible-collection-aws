@@ -5,6 +5,61 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+DOCUMENTATION = '''
+---
+module: cloudwatch_event
+short_description: Manage scheduled CloudWatch Events
+description:
+    - Manage scheduled CloudWatch Events.
+author:
+    - Matt Clay (@mattclay) <matt@mystile.com>
+requirements:
+    - boto3
+    - botocore
+options:
+    rule_name:
+        description:
+            - The unique name of the rule.
+        required: true
+        type: str
+    function_name:
+        description:
+            - The Lambda function to invoke when the rule is triggered.
+        required: true
+        type: str
+    schedule_expression:
+        description:
+            - The schedule to use for the rule.
+        required: true
+        type: str
+    description:
+        description:
+            - Description of the rule.
+        type: str
+    state:
+        description:
+            - If C(enabled) the rule will exist and be enabled.
+            - If C(disabled) the rule will exist and be disabled.
+            - If C(absent) the rule will not exist.
+        choices:
+            - enabled
+            - disabled
+            - absent
+        default: enabled
+        type: str
+extends_documentation_fragment:
+    - aws
+    - ec2
+'''
+
+EXAMPLES = '''
+cloudwatch_event:
+    region: us-east-1
+    rule_name: my_rule
+    schedule_expression: rate(5 minutes)
+    function_name: my_function_name:some_alias
+'''
+
 import uuid
 
 try:

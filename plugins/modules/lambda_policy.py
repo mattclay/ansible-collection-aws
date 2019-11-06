@@ -5,6 +5,61 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+DOCUMENTATION = '''
+---
+module: lambda_policy
+short_description: Manage Lambda service permissions
+description:
+    - Manage Lambda service permissions.
+author:
+    - Matt Clay (@mattclay) <matt@mystile.com>
+requirements:
+    - boto3
+    - botocore
+options:
+    function_name:
+        description:
+            - The name of the Lambda function to manage.
+        required: true
+        type: str
+        aliases:
+            - name
+    state:
+        description:
+            - If C(present) the permission will be added if not already present.
+            - If C(absent) the permission will be removed if present.
+        default: present
+        choices:
+            - present
+            - absent
+        type: str
+    source_arn:
+        description:
+            - The ARN of the resource that will invoke the function.
+        required: true
+        type: str
+    qualifier:
+        description:
+            - The version or alias of the Lambda function.
+        type: str
+    principal_service:
+        description:
+            - The service that will invoke the function.
+        required: true
+        type: str
+extends_documentation_fragment:
+    - aws
+    - ec2
+'''
+
+EXAMPLES = '''
+lambda_policy:
+    function_name: "{{ item }}"
+    qualifier: "{{ stage }}"
+    source_arn: arn:aws:execute-api:{{ aws_region }}:{{ aws_account_id }}:{{ apigateway['meta']['id'] }}/*
+    principal_service: apigateway.amazonaws.com
+'''
+
 import json
 import uuid
 

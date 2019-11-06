@@ -5,6 +5,26 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+DOCUMENTATION = '''
+---
+module: aws_availability_zone_facts
+short_description: Return information about availability zones
+description:
+    - Return information about availability zones.
+author:
+    - Matt Clay (@mattclay) <matt@mystile.com>
+requirements:
+    - boto3
+    - botocore
+extends_documentation_fragment:
+    - aws
+    - ec2
+'''
+
+EXAMPLES = '''
+aws_availability_zone_facts:
+'''
+
 from ansible.module_utils.basic import (
     AnsibleModule,
 )

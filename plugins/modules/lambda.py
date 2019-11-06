@@ -5,6 +5,129 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+DOCUMENTATION = '''
+---
+module: lambda
+short_description: Manage Lambda functions
+description:
+    - Manage Lambda functions.
+author:
+    - Matt Clay (@mattclay) <matt@mystile.com>
+requirements:
+    - boto3
+    - botocore
+options:
+    function_name:
+        description:
+            - The name of the Lambda function.
+        type: str
+        required: true
+        aliases:
+            - name
+    runtime:
+        description:
+            - The runtime used to execute the Lambda function.
+        required: true
+        type: str
+    role:
+        description:
+            - The role used to execute the Lambda function.
+        required: true
+        type: str
+    handler:
+        description:
+            - The name of the handler (entry point) for the Lambda function.
+        required: true
+        type: str
+    code:
+        description:
+            - Inline code of the Lambda function.
+            - Provide one of C(code), C(local_path) or C(s3_bucket).
+        type: str
+    local_path:
+        description:
+            - Path to a file containing the code of the Lambda function.
+            - Provide one of C(code), C(local_path) or C(s3_bucket).
+        type: str
+    s3_bucket:
+        description:
+            - The name of an S3 bucket which contains the code for the Lambda function.
+            - Provide one of C(code), C(local_path) or C(s3_bucket).
+        type: str
+    s3_key:
+        description:
+            - When using C(s3_bucket) this provides the key containing the code of the Lambda function.
+        type: str
+    s3_object_version:
+        description:
+            - When using C(s3_bucket) this provides the object version containing the code of the Lambda function.
+        type: str
+    description:
+        description:
+            - The description of the Lambda function.
+        type: str
+    timeout:
+        description:
+            - The timeout (in minutes) for execution of the Lambda function.
+        default: 3
+        type: int
+    memory_size:
+        description:
+            - The memory limit (in MB) for execution of the Lambda function.
+        default: 128
+        type: int
+    publish:
+        description:
+            - Publish the Lambda function.
+        default: false
+        type: bool
+    qualifier:
+        description:
+            - The alias to use when publishing the Lambda function.
+        type: str
+    state:
+        description:
+            - If C(present) the Lambda function will be created if it does not exist.
+            - If C(absent) the Lambda function will be removed if it does not exist.
+        choices:
+            - present
+            - absent
+        default: present
+        type: str
+    preserve_environment:
+        description:
+            - Preserve the existing environment variables already configured for the Lambda function.
+        default: false
+        type: bool
+    environment:
+        description:
+            - Environment variables to provide during execution of the Lambda function.
+        type: dict
+    layers:
+        description:
+            - A list of layers used by the Lambda function.
+        type: list
+extends_documentation_fragment:
+    - aws
+    - ec2
+'''
+
+EXAMPLES = '''
+lambda:
+    region: us-east-1
+    name: my_function
+    local_path: my_function.zip
+    runtime: python3.7
+    timeout: 60
+    handler: my_function.lambda_handler
+    memory_size: 128
+    role: my_lambda_role
+    publish: true
+    qualifier: prod
+    environment:
+        API_KEY: some_value
+'''
+
 import base64
 import hashlib
 import os

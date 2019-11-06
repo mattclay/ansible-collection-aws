@@ -5,6 +5,85 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
+DOCUMENTATION = '''
+---
+module: apigateway
+short_description: Manage API Gateway deployments using a Swagger Specification
+description:
+    - Manage API Gateway deployments using a Swagger Specification.
+author:
+    - Matt Clay (@mattclay) <matt@mystile.com>
+requirements:
+    - boto3
+    - botocore
+options:
+    state:
+        description:
+            - If C(present) the API deployment will be created.
+            - If C(absent) the API deployment will be removed.
+        type: str
+        choices:
+            - present
+            - absent
+        default: present
+    swagger:
+        description:
+            - The Swagger Specification to deploy in JSON format.
+        required: true
+        type: str
+    api_name:
+        description:
+            - A unique name for the API Gateway deployment.
+            - If the name is not unique deployment will fail.
+            - If not specified, the C(info) C(title) from the Swagger Specification will be used.
+        type: str
+    stage_name:
+        description:
+            - The stage name used for deployment.
+        required: true
+        type: str
+    stage_description:
+        description:
+            - The stage description used for deployment.
+        type: str
+    deployment_description:
+        description:
+            - The deployment description used for deployment.
+        type: str
+    mode:
+        description:
+            - If C(merge) the specification will be merged into the existing API.
+            - If C(overwrite) the specification will overwrite the existing API.
+        choices:
+            - merge
+            - overwrite
+        default: merge
+        type: str
+    fail_on_warnings:
+        description:
+            - Fail during API import if warnings are encountered.
+        default: True
+        type: bool
+    stage_variables:
+        description:
+            - Stage variables to include in the deployment.
+        type: dict
+extends_documentation_fragment:
+    - aws
+    - ec2
+'''
+
+EXAMPLES = '''
+apigateway:
+    stage_name: prod
+    stage_description: Production
+    stage_variables:
+        stage: prod
+    deployment_description: Production Deployment
+    mode: overwrite
+    swagger: "{{ swagger | to_nice_json }}"
+'''
+
 import json
 
 try:
