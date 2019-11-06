@@ -1,0 +1,20 @@
+name: CI
+
+on: push
+
+jobs:
+  build:
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Set up Python 3.7
+        uses: actions/setup-python@v1
+        with:
+          python-version: 3.7
+      - name: Check out code
+        uses: actions/checkout@v1
+        with:
+          path: ansible_collections/mattclay/aws
+      - name: Install Ansible 2.9.0
+        run: pip install ansible==2.9.0 --disable-pip-version-check
+      - name: Run sanity tests
+        run: ansible-test sanity --docker -v --color
