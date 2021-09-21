@@ -132,6 +132,7 @@ import base64
 import hashlib
 import os
 import zipfile
+import time
 
 try:
     import botocore
@@ -394,9 +395,20 @@ class LambdaModule:
             if not args['Environment']:
                 del args['Environment']
 
-            return self.al.update_function_configuration(**args)
+            result = self.al.update_function_configuration(**args)
+
+            self.wait_on_function()
+
+            return result
 
         return args
+
+    def wait_on_function(self):
+        status = 'InProgress'
+
+        while status == 'InProgress':
+            time.sleep(1)
+            status = self.get_function(None)['LastUpdateStatus']
 
     def update_function_code(self, changed):
         args = self.make_function_code()
