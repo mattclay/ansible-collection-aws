@@ -1,0 +1,72 @@
+- name: Create an event mapping (check)
+  sqs_event:
+    source_arn: "{{ queue_arn }}"
+    function_arn: "{{ function_arn }}"
+  check_mode: yes
+  register: create_check
+
+- name: Create an event mapping (changed)
+  sqs_event:
+    source_arn: "{{ queue_arn }}"
+    function_arn: "{{ function_arn }}"
+  register: create_changed
+
+- name: Create an event mapping (unchanged)
+  sqs_event:
+    source_arn: "{{ queue_arn }}"
+    function_arn: "{{ function_arn }}"
+  register: create_unchanged
+
+- name: Update an event mapping (check)
+  sqs_event:
+    source_arn: "{{ queue_arn }}"
+    function_arn: "{{ function_arn }}"
+    batch_size: 2
+  check_mode: yes
+  register: update_check
+
+- name: Update an event mapping (changed)
+  sqs_event:
+    source_arn: "{{ queue_arn }}"
+    function_arn: "{{ function_arn }}"
+    batch_size: 2
+  register: update_changed
+
+- name: Update an event mapping (unchanged)
+  sqs_event:
+    source_arn: "{{ queue_arn }}"
+    function_arn: "{{ function_arn }}"
+    batch_size: 2
+  register: update_unchanged
+
+- name: Delete an event mapping (check)
+  sqs_event:
+    source_arn: "{{ queue_arn }}"
+    state: absent
+  check_mode: yes
+  register: delete_check
+
+- name: Delete an event mapping (changed)
+  sqs_event:
+    source_arn: "{{ queue_arn }}"
+    state: absent
+  register: delete_changed
+
+- name: Delete an event mapping (unchanged)
+  sqs_event:
+    source_arn: "{{ queue_arn }}"
+    state: absent
+  register: delete_unchanged
+
+- name: Check results
+  assert:
+    that:
+      - create_check is changed
+      - create_changed is changed
+      - create_unchanged is not changed
+      - update_check is changed
+      - update_changed is changed
+      - update_unchanged is not changed
+      - delete_check is changed
+      - delete_changed is changed
+      - delete_unchanged is not changed

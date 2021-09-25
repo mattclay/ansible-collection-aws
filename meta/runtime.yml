@@ -1,1 +1,17 @@
 requires_ansible: '>=2.9'
+action_groups:
+  common:
+    # this collection
+    - apigateway
+    - aws_account_facts
+    - aws_availability_zone_facts
+    - cloudwatch_event
+    - lambda
+    - lambda_alias
+    - lambda_layer
+    - lambda_package
+    - lambda_policy
+    - sqs_event
+    - sqs_fifo_queue
+    # external collections
+    - community.aws.iam_role
