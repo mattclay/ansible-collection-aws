@@ -48,8 +48,8 @@ options:
         default: enabled
         type: str
 extends_documentation_fragment:
-    - aws
-    - ec2
+    - amazon.aws.aws
+    - amazon.aws.ec2
 '''
 
 EXAMPLES = '''
@@ -64,6 +64,7 @@ import uuid
 
 try:
     import botocore
+    import botocore.exceptions
 except ImportError:
     botocore = None
 
@@ -71,7 +72,7 @@ from ansible.module_utils.basic import (
     AnsibleModule,
 )
 
-from ansible.module_utils.ec2 import (
+from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
     boto3_conn,
     ec2_argument_spec,
     get_aws_connection_info,
@@ -171,7 +172,7 @@ class EventsModule:
             rule_changed = True
             target_changed = True
         else:
-            rule_changed = any([k for k in local_rule if local_rule[k] != remote_rule.get(k, '')])
+            rule_changed = any(k for k in local_rule if local_rule[k] != remote_rule.get(k, ''))
             targets = self.events.list_targets_by_rule(Rule=self.params['rule_name'])['Targets']
             targets = [t for t in targets if t['Arn'] == self.params['function_name']]
             target_changed = not bool(targets)

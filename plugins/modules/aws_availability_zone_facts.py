@@ -17,8 +17,8 @@ requirements:
     - boto3
     - botocore
 extends_documentation_fragment:
-    - aws
-    - ec2
+    - amazon.aws.aws
+    - amazon.aws.ec2
 '''
 
 EXAMPLES = '''
@@ -29,7 +29,7 @@ from ansible.module_utils.basic import (
     AnsibleModule,
 )
 
-from ansible.module_utils.ec2 import (
+from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
     boto3_conn,
     camel_dict_to_snake_dict,
     ec2_argument_spec,

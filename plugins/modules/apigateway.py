@@ -69,8 +69,8 @@ options:
             - Stage variables to include in the deployment.
         type: dict
 extends_documentation_fragment:
-    - aws
-    - ec2
+    - amazon.aws.aws
+    - amazon.aws.ec2
 '''
 
 EXAMPLES = '''
@@ -88,6 +88,7 @@ import json
 
 try:
     import botocore
+    import botocore.exceptions
 except ImportError:
     botocore = None
 
@@ -95,7 +96,7 @@ from ansible.module_utils.basic import (
     AnsibleModule,
 )
 
-from ansible.module_utils.ec2 import (
+from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
     boto3_conn,
     ec2_argument_spec,
     get_aws_connection_info,

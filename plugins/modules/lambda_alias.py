@@ -46,8 +46,8 @@ options:
             - The description of the alias.
         type: str
 extends_documentation_fragment:
-    - aws
-    - ec2
+    - amazon.aws.aws
+    - amazon.aws.ec2
 '''
 
 EXAMPLES = '''
@@ -62,6 +62,7 @@ lambda_alias:
 
 try:
     import botocore
+    import botocore.exceptions
 except ImportError:
     botocore = None
 
@@ -69,7 +70,7 @@ from ansible.module_utils.basic import (
     AnsibleModule,
 )
 
-from ansible.module_utils.ec2 import (
+from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
     boto3_conn,
     camel_dict_to_snake_dict,
     ec2_argument_spec,
@@ -165,7 +166,7 @@ class LambdaAliasModule:
         if remote_alias is None:
             changed = True
         else:
-            changed = any([k for k in local_alias if local_alias[k] != remote_alias[k]])
+            changed = any(k for k in local_alias if local_alias[k] != remote_alias[k])
 
         args = dict(
             FunctionName=self.params['function_name'],

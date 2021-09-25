@@ -31,10 +31,12 @@ options:
         description:
             - A list of patterns to include in the package.
         type: list
+        elements: str
     exclude:
         description:
             - A list of patterns to exclude from the package.
         type: list
+        elements: str
     rename:
         description:
             - Mapping of files that should be renamed in the package.
@@ -68,8 +70,8 @@ def main():
     argument_spec = dict(
         src=dict(type='path', required=True),
         dest=dict(type='path', required=True),
-        include=dict(type='list'),
-        exclude=dict(type='list'),
+        include=dict(type='list', elements='str'),
+        exclude=dict(type='list', elements='str'),
         rename=dict(type='dict'),
     )
 
