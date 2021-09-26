@@ -110,9 +110,8 @@ class LambdaAliasModule:
         self.check_mode = check_mode
         self.params = params
         self.al = None
-        self.iam = None
+        self.sts = None
         self.region = None
-        self.account_id = None
 
     def run(self):
         if not HAS_BOTO3:
@@ -122,13 +121,8 @@ class LambdaAliasModule:
 
         self.region = region
 
-        self.al = boto3_conn(self.module, conn_type='client', resource='lambda', region=region, endpoint=ec2_url,
-                             **aws_connect_kwargs)
-
-        self.iam = boto3_conn(self.module, conn_type='resource', resource='iam', region=region, endpoint=ec2_url,
-                              **aws_connect_kwargs)
-
-        self.account_id = self.iam.CurrentUser().arn.split(':')[4]
+        self.al = boto3_conn(self.module, conn_type='client', resource='lambda', region=region, endpoint=ec2_url, **aws_connect_kwargs)
+        self.sts = boto3_conn(self.module, conn_type='client', resource='sts', region=region, endpoint=ec2_url, **aws_connect_kwargs)
 
         choice_map = dict(
             present=self.alias_present,
@@ -179,8 +173,13 @@ class LambdaAliasModule:
             else:
                 data = self.al.update_alias(**args)
         else:
+            caller_identity = self.sts.get_caller_identity()
+            caller_arn = caller_identity['Arn']
+
+            account_id = caller_arn.split(':')[4]
+
             arn = 'arn:aws:lambda:%s:%s:function:%s:%s' % (
-                self.region, self.account_id, self.params['function_name'], self.params['name'])
+                self.region, account_id, self.params['function_name'], self.params['name'])
 
             data = dict(
                 FunctionArn=arn,

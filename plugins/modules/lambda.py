@@ -211,7 +211,6 @@ class LambdaModule:
         self.package = None
         self.al = None
         self.iam = None
-        self.account_id = None
 
     def run(self):
         if not HAS_BOTO3:
@@ -219,16 +218,17 @@ class LambdaModule:
 
         region, ec2_url, aws_connect_kwargs = get_aws_connection_info(self.module, boto3=True)
 
-        self.al = boto3_conn(self.module, conn_type='client', resource='lambda', region=region, endpoint=ec2_url,
-                             **aws_connect_kwargs)
-
-        self.iam = boto3_conn(self.module, conn_type='resource', resource='iam', region=region, endpoint=ec2_url,
-                              **aws_connect_kwargs)
-
-        self.account_id = self.iam.CurrentUser().arn.split(':')[4]
+        self.al = boto3_conn(self.module, conn_type='client', resource='lambda', region=region, endpoint=ec2_url, **aws_connect_kwargs)
 
         if not self.params['role'].startswith('arn:aws:iam:'):
-            self.params['role'] = 'arn:aws:iam::%s:role/%s' % (self.account_id, self.params['role'])
+            sts = boto3_conn(self.module, conn_type='client', resource='sts', region=region, endpoint=ec2_url, **aws_connect_kwargs)
+
+            caller_identity = sts.get_caller_identity()
+            caller_arn = caller_identity['Arn']
+
+            account_id = caller_arn.split(':')[4]
+
+            self.params['role'] = 'arn:aws:iam::%s:role/%s' % (account_id, self.params['role'])
 
         choice_map = dict(
             present=self.function_present,
