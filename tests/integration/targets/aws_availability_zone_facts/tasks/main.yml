@@ -1,5 +1,8 @@
-- aws_availability_zone_facts:
-    region: '{{ aws_region }}'
-    aws_access_key: '{{ aws_access_key }}'
-    aws_secret_key: '{{ aws_secret_key }}'
-    security_token: '{{ security_token }}'
+- block:
+    - import_tasks: tests.yml
+  module_defaults:
+    group/mattclay.aws.common:
+      access_key: "{{ aws_access_key }}"
+      secret_key: "{{ aws_secret_key }}"
+      aws_region: "{{ aws_region }}"
+      security_token: "{{ security_token }}"

@@ -1,0 +1,7 @@
+- name: Gather account facts
+  aws_account_facts:
+
+- name: Check results
+  assert:
+    that:
+      - aws_account_id | int
