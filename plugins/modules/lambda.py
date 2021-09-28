@@ -107,9 +107,10 @@ options:
         description:
             - A list of layers used by the Lambda function.
         type: list
+        elements: str
 extends_documentation_fragment:
-    - aws
-    - ec2
+    - amazon.aws.aws
+    - amazon.aws.ec2
 '''
 
 EXAMPLES = '''
@@ -136,6 +137,7 @@ import time
 
 try:
     import botocore
+    import botocore.exceptions
 except ImportError:
     botocore = None
 
@@ -143,7 +145,7 @@ from ansible.module_utils.basic import (
     AnsibleModule,
 )
 
-from ansible.module_utils.ec2 import (
+from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
     boto3_conn,
     ec2_argument_spec,
     get_aws_connection_info,
@@ -165,7 +167,7 @@ def main():
         code=dict(required=False, default=None, type='str'),
         local_path=dict(required=False, default=None, type='str'),
         s3_bucket=dict(required=False, default=None, type='str'),
-        s3_key=dict(required=False, default=None, type='str'),
+        s3_key=dict(required=False, default=None, type='str', no_log=False),
         s3_object_version=dict(required=False, default=None, type='str'),
         description=dict(required=False, default='', type='str'),
         timeout=dict(required=False, default=3, type='int'),
@@ -175,7 +177,7 @@ def main():
         state=dict(required=False, default='present', type='str', choices=['present', 'absent']),
         preserve_environment=dict(required=False, default=False, type='bool'),
         environment=dict(required=False, default=None, type='dict'),
-        layers=dict(required=False, default=None, type='list'),
+        layers=dict(required=False, default=None, type='list', elements='str'),
     ))
 
     module = AnsibleModule(
@@ -209,7 +211,6 @@ class LambdaModule:
         self.package = None
         self.al = None
         self.iam = None
-        self.account_id = None
 
     def run(self):
         if not HAS_BOTO3:
@@ -217,16 +218,17 @@ class LambdaModule:
 
         region, ec2_url, aws_connect_kwargs = get_aws_connection_info(self.module, boto3=True)
 
-        self.al = boto3_conn(self.module, conn_type='client', resource='lambda', region=region, endpoint=ec2_url,
-                             **aws_connect_kwargs)
-
-        self.iam = boto3_conn(self.module, conn_type='resource', resource='iam', region=region, endpoint=ec2_url,
-                              **aws_connect_kwargs)
-
-        self.account_id = self.iam.CurrentUser().arn.split(':')[4]
+        self.al = boto3_conn(self.module, conn_type='client', resource='lambda', region=region, endpoint=ec2_url, **aws_connect_kwargs)
 
         if not self.params['role'].startswith('arn:aws:iam:'):
-            self.params['role'] = 'arn:aws:iam::%s:role/%s' % (self.account_id, self.params['role'])
+            sts = boto3_conn(self.module, conn_type='client', resource='sts', region=region, endpoint=ec2_url, **aws_connect_kwargs)
+
+            caller_identity = sts.get_caller_identity()
+            caller_arn = caller_identity['Arn']
+
+            account_id = caller_arn.split(':')[4]
+
+            self.params['role'] = 'arn:aws:iam::%s:role/%s' % (account_id, self.params['role'])
 
         choice_map = dict(
             present=self.function_present,
@@ -343,7 +345,7 @@ class LambdaModule:
         remote_config = dict((k, remote_function.get(k, None)) for k in local_config)
 
         code_changed = local_hash != remote_hash
-        config_changed = any([k for k in local_config if not self.are_equal(local_config[k], remote_config[k])])
+        config_changed = any(k for k in local_config if not self.are_equal(local_config[k], remote_config[k]))
 
         if self.params['publish'] and remote_function['Version'] == '$LATEST':
             # force code update (and publishing) since version found is $LATEST

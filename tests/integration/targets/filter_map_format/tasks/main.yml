@@ -1,0 +1,8 @@
+- name: Test map_format filter
+  assert:
+    that:
+      - '{{ {} | mattclay.aws.map_format("Hello") == "Hello" }}'
+      - '{{ {"age": 21} | mattclay.aws.map_format("Hello {name} {age}", name="Bob") == "Hello Bob 21" }}'
+      - '{{ {"name": "World"} | mattclay.aws.map_format("Hello {name}") == "Hello World" }}'
+      - '{{ {"name": "World"} | mattclay.aws.map_format("Hello {name}", name="Bob") == "Hello Bob" }}'
+      - '{{ {"name": "World"} | mattclay.aws.map_format("Hello {name} {0}", 3) == "Hello World 3" }}'

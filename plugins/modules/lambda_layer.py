@@ -30,6 +30,7 @@ options:
         description:
             - A list of runtimes compatible with the layer.
         type: list
+        elements: str
     path:
         description:
             - The local path to the contents of the layer.
@@ -49,8 +50,8 @@ options:
         default: present
         type: str
 extends_documentation_fragment:
-    - aws
-    - ec2
+    - amazon.aws.aws
+    - amazon.aws.ec2
 '''
 
 EXAMPLES = '''
@@ -77,7 +78,7 @@ from ansible.module_utils.common.dict_transformations import (
     camel_dict_to_snake_dict,
 )
 
-from ansible.module_utils.ec2 import (
+from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
     boto3_conn,
     ec2_argument_spec,
     get_aws_connection_info,
@@ -89,7 +90,7 @@ def main():
     argument_spec.update(dict(
         name=dict(type='str', required=True),
         description=dict(type='str'),
-        compatible_runtimes=dict(type='list'),
+        compatible_runtimes=dict(type='list', elements='str'),
         path=dict(type='path', required=True),
         license_info=dict(type='str'),
         state=dict(default='present', type='str', choices=['present', 'absent']),

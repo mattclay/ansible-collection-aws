@@ -1,4 +1,5 @@
 - block:
+    - import_tasks: setup.yml
     - import_tasks: tests.yml
   module_defaults:
     group/mattclay.aws.common:

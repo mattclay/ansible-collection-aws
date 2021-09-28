@@ -1,0 +1,45 @@
+- name: Create a role
+  community.aws.iam_role:
+    name: "{{ iam_role_name }}"
+    assume_role_policy_document:
+      Version: '2012-10-17'
+      Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+    managed_policies:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
+
+- name: Wait for role to be usable
+  pause:
+    seconds: 10
+
+- name: Gather account facts
+  aws_account_facts:
+
+- name: Create an SQS FIFO queue
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    message_retention_period: 300
+    visibility_timeout: 60
+
+- name: Create a Lambda function
+  lambda:
+    name: "{{ function_name }}"
+    code: "# no actual code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: yes
+    qualifier: "test"
+  register: lambda_function
+
+- name: Alias the Lambda function
+  lambda_alias:
+    name: "test"
+    description: "test alias"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    version: "{{ lambda_function.meta.version }}"

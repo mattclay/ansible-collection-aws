@@ -1,0 +1,15 @@
+- name: Test ec2_az_vpc_subnets filter
+  assert:
+    that:
+      - '{{ {"us-east-1a": {}} | mattclay.aws.ec2_az_vpc_subnets("192.168.%s.0/24", "Bob") ==
+            [{ "az": "us-east-1a", "cidr": "192.168.0.0/24", "resource_tags": {"Name": "Bob"}}] }}'
+      - '{{ {"us-east-1f": {}} | mattclay.aws.ec2_az_vpc_subnets("192.168.%s.0/24", "Bob") ==
+            [{ "az": "us-east-1f", "cidr": "192.168.5.0/24", "resource_tags": {"Name": "Bob"}}] }}'
+
+- name: Test ec2_az_vpc_route_tables_subnets filter
+  assert:
+    that:
+      - '{{ {"us-east-1a": {}, "us-east-1b": {}} | mattclay.aws.ec2_az_vpc_route_tables_subnets("192.168.%s.0/24") ==
+            ["192.168.0.0/24", "192.168.1.0/24"] }}'
+      - '{{ {"us-east-1f": {}} | mattclay.aws.ec2_az_vpc_route_tables_subnets("192.168.%s.0/24") ==
+            ["192.168.5.0/24"] }}'

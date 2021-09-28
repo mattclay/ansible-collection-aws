@@ -1,0 +1,6 @@
+queue_name: "{{ resource_prefix }}-event.fifo"
+queue_arn: "arn:aws:sqs:{{ aws_region }}:{{ aws_account_id}}:{{ queue_name }}"
+function_name: "{{ resource_prefix }}-event"
+function_arn: "arn:aws:lambda:{{ aws_region }}:{{ aws_account_id }}:function:{{ function_name }}:test"
+iam_role_name: "{{ resource_prefix }}"
+iam_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ iam_role_name }}"

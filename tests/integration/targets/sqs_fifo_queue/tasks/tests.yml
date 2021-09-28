@@ -1,0 +1,75 @@
+- name: Create an SQS FIFO queue (check)
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    message_retention_period: 300
+    visibility_timeout: 60
+  check_mode: yes
+  register: create_check
+
+- name: Create an SQS FIFO queue (create)
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    message_retention_period: 300
+    visibility_timeout: 60
+  register: create_changed
+
+- name: Create an SQS FIFO queue (unchanged)
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    message_retention_period: 300
+    visibility_timeout: 60
+  register: create_unchanged
+
+- name: Update an SQS FIFO queue (check)
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    message_retention_period: 600
+    visibility_timeout: 60
+  check_mode: yes
+  register: update_check
+
+- name: Update an SQS FIFO queue (create)
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    message_retention_period: 600
+    visibility_timeout: 60
+  register: update_changed
+
+- name: Update an SQS FIFO queue (unchanged)
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    message_retention_period: 600
+    visibility_timeout: 60
+  register: update_unchanged
+
+- name: Delete an SQS FIFO queue (check)
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    state: absent
+  check_mode: yes
+  register: delete_check
+
+- name: Delete an SQS FIFO queue (changed)
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    state: absent
+  register: delete_changed
+
+- name: Delete an SQS FIFO queue (unchanged)
+  sqs_fifo_queue:
+    name: "{{ queue_name }}"
+    state: absent
+  register: delete_unchanged
+
+- name: Check results
+  assert:
+    that:
+      - create_check is changed
+      - create_changed is changed
+      - create_unchanged is not changed
+      - update_check is changed
+      - update_changed is changed
+      - update_unchanged is not changed
+      - delete_check is changed
+      - delete_changed is changed
+      - delete_unchanged is not changed
