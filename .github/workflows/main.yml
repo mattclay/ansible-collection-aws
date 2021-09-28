@@ -23,6 +23,6 @@ jobs:
       - name: Install Ansible Core 2.12.0b1
         run: pip install ansible-core==2.12.0b1 --disable-pip-version-check
       - name: Install Dependencies
-        run: ansible-galaxy collection install -r requirements.yml -p ../../../ansible_collections
+        run: ansible-galaxy collection install -r test-requirements.yml -p ../../../ansible_collections
       - name: Run sanity tests
         run: ansible-test sanity --docker -v --color
