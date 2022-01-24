@@ -20,8 +20,8 @@ jobs:
         uses: actions/checkout@v1
         with:
           path: ansible_collections/mattclay/aws
-      - name: Install Ansible Core 2.12.0b1
-        run: pip install ansible-core==2.12.0b1 --disable-pip-version-check
+      - name: Install Ansible Core
+        run: pip install ansible-core==2.12.0 --disable-pip-version-check
       - name: Install Dependencies
         run: ansible-galaxy collection install -r tests/requirements.yml -p ../../../ansible_collections
       - name: Run sanity tests
