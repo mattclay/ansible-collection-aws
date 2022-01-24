@@ -1,3 +1,4 @@
 collections:
   - name: community.aws
   - name: amazon.aws
+    version: '>=1.0.0,<2.0.0'
