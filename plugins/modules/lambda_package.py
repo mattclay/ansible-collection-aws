@@ -122,34 +122,40 @@ class LambdaPackageModule:
         return result
 
     def create_package(self):
+        paths = []
+
+        for root, _dummy, filenames in os.walk(self.src):
+            for filename in filenames:
+                src_path = os.path.join(root, filename)
+                dst_path = os.path.relpath(src_path, self.src)
+
+                if self.include:
+                    if not any(fnmatch.fnmatch(src_path, pattern) for pattern in self.include):
+                        continue
+
+                if self.exclude:
+                    if any(fnmatch.fnmatch(src_path, pattern) for pattern in self.exclude):
+                        continue
+
+                dst_path = self.rename.get(dst_path, dst_path)
+
+                paths.append((dst_path, src_path))
+
+        paths = sorted(paths)
         data = BytesIO()
 
         with zipfile.ZipFile(data, 'w', zipfile.ZIP_DEFLATED) as zip_file:
-            for root, _dummy, filenames in os.walk(self.src):
-                for filename in filenames:
-                    src_path = os.path.join(root, filename)
-                    dst_path = os.path.relpath(src_path, self.src)
+            for dst_path, src_path in paths:
+                zip_info = zipfile.ZipInfo(
+                    dst_path,
+                    (1980, 1, 1, 0, 0, 0),  # deterministic timestamp for idempotency
+                )
 
-                    if self.include:
-                        if not any(fnmatch.fnmatch(src_path, pattern) for pattern in self.include):
-                            continue
+                zip_info.compress_type = zipfile.ZIP_DEFLATED
+                zip_info.external_attr = 0o777 << 16  # give full access to included file
 
-                    if self.exclude:
-                        if any(fnmatch.fnmatch(src_path, pattern) for pattern in self.exclude):
-                            continue
-
-                    dst_path = self.rename.get(dst_path, dst_path)
-
-                    zip_info = zipfile.ZipInfo(
-                        dst_path,
-                        (1980, 1, 1, 0, 0, 0),  # deterministic timestamp for idempotency
-                    )
-
-                    zip_info.compress_type = zipfile.ZIP_DEFLATED
-                    zip_info.external_attr = 0o777 << 16  # give full access to included file
-
-                    with open(src_path, 'rb') as src_file:
-                        zip_file.writestr(zip_info, src_file.read())
+                with open(src_path, 'rb') as src_file:
+                    zip_file.writestr(zip_info, src_file.read())
 
         return data.getvalue()
 
