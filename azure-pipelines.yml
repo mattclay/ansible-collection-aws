@@ -23,7 +23,7 @@ steps:
   - checkout: self
     path: ansible_collections/mattclay/aws
     displayName: Checkout Code
-  - bash: pip install ansible-core==2.14.2rc1 --disable-pip-version-check
+  - bash: pip install -r tests/requirements.txt --disable-pip-version-check
     displayName: Install Ansible Core
   - bash: ansible-galaxy collection install -r tests/requirements.yml -p ../../../ansible_collections
     displayName: Install Dependencies
