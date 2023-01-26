@@ -31,3 +31,5 @@ steps:
     displayName: Run Sanity Tests
   - bash: ansible-test integration --docker -v --color
     displayName: Run Integration Tests
+  - bash: ansible-galaxy collection build
+    displayName: Run Galaxy Build
