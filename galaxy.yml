@@ -58,3 +58,5 @@ homepage: https://github.com/mattclay/ansible-collection-aws
 
 # The URL to the collection issue tracker
 issues: https://github.com/mattclay/ansible-collection-aws/issues
+
+manifest: {}
