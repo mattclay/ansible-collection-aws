@@ -321,6 +321,9 @@ class LambdaModule:
                 del args['Environment']
 
             api = self.al.create_function(**args)
+
+            self.wait_on_create()
+
             result = self.make_result(api)
         else:
             result = self.make_result(args)
@@ -402,6 +405,13 @@ class LambdaModule:
 
         return args
 
+    def wait_on_create(self):
+        status = 'Pending'
+
+        while status == 'Pending':
+            time.sleep(1)
+            status = self.get_function(None)['State']
+
     def wait_on_function(self):
         status = 'InProgress'
 
@@ -415,7 +425,11 @@ class LambdaModule:
         args['Publish'] = self.params['publish']
 
         if changed and not self.check_mode:
-            return self.al.update_function_code(**args)
+            result = self.al.update_function_code(**args)
+
+            self.wait_on_function()
+
+            return result
 
         return args
 
