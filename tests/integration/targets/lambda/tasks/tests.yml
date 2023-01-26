@@ -1,0 +1,89 @@
+- name: Create a Lambda function (check)
+  lambda:
+    name: "{{ function_name }}"
+    code: "# no actual code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: yes
+    qualifier: "test"
+  check_mode: yes
+  register: create_check
+
+- name: Create a Lambda function (changed)
+  lambda:
+    name: "{{ function_name }}"
+    code: "# no actual code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: yes
+    qualifier: "test"
+  register: create_changed
+
+- name: Create a Lambda function (unchanged)
+  lambda:
+    name: "{{ function_name }}"
+    code: "# no actual code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: no  # publishing would force an update and thus report changed
+    qualifier: "test"
+  register: create_unchanged
+
+- name: Update a Lambda function (check)
+  lambda:
+    name: "{{ function_name }}"
+    code: "# updated code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: yes
+    qualifier: "test"
+  check_mode: yes
+  register: update_check
+
+- name: Update a Lambda function (changed)
+  lambda:
+    name: "{{ function_name }}"
+    code: "# updated code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: yes
+    qualifier: "test"
+  register: update_changed
+
+- name: Update a Lambda function (unchanged)
+  lambda:
+    name: "{{ function_name }}"
+    code: "# updated code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: no  # publishing would force an update and thus report changed
+    qualifier: "test"
+  register: update_unchanged
+
+- name: Check results
+  assert:
+    that:
+      - create_check is changed
+      - create_changed is changed
+      - create_unchanged is not changed
+      - update_check is changed
+      - update_changed is changed
+      - update_unchanged is not changed

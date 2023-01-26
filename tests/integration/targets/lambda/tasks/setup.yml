@@ -1,0 +1,19 @@
+- name: Create a role
+  community.aws.iam_role:
+    name: "{{ iam_role_name }}"
+    assume_role_policy_document:
+      Version: '2012-10-17'
+      Statement:
+        - Action: sts:AssumeRole
+          Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+    managed_policies:
+      - arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
+
+- name: Wait for role to be usable
+  pause:
+    seconds: 10
+
+- name: Gather account facts
+  aws_account_facts:
