@@ -11,10 +11,6 @@ def ec2_az_vpc_subnets(zones, subnet, name):
     ) for z in zones]
 
 
-def ec2_az_vpc_route_tables_subnets(zones, subnet):
-    return [map_zone_to_subnet(z, subnet) for z in zones]
-
-
 def map_zone_to_subnet(zone, subnet):
     position = ord(zone[-1:]) - ord('a')
     return subnet % position
@@ -24,5 +20,4 @@ class FilterModule(object):
     def filters(self):
         return dict(
             ec2_az_vpc_subnets=ec2_az_vpc_subnets,
-            ec2_az_vpc_route_tables_subnets=ec2_az_vpc_route_tables_subnets
         )

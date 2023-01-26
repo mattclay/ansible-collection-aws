@@ -1,0 +1,7 @@
+- name: Test ec2_az_vpc_route_tables_subnets filter
+  assert:
+    that:
+      - '{{ {"us-east-1a": {}, "us-east-1b": {}} | mattclay.aws.ec2_az_vpc_route_tables_subnets("192.168.%s.0/24") ==
+            ["192.168.0.0/24", "192.168.1.0/24"] }}'
+      - '{{ {"us-east-1f": {}} | mattclay.aws.ec2_az_vpc_route_tables_subnets("192.168.%s.0/24") ==
+            ["192.168.5.0/24"] }}'
