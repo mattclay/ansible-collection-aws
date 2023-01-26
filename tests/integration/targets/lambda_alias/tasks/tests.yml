@@ -1,0 +1,59 @@
+- name: Create the Lambda function alias (check)
+  lambda_alias:
+    name: "test"
+    description: "test alias"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    version: "{{ lambda_function.meta.version }}"
+  check_mode: yes
+  register: create_check
+
+- name: Create the Lambda function alias (changed)
+  lambda_alias:
+    name: "test"
+    description: "test alias"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    version: "{{ lambda_function.meta.version }}"
+  register: create_changed
+
+- name: Create the Lambda function alias (unchanged)
+  lambda_alias:
+    name: "test"
+    description: "test alias"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    version: "{{ lambda_function.meta.version }}"
+  register: create_unchanged
+
+- name: Update the Lambda function alias (check)
+  lambda_alias:
+    name: "test"
+    description: "updated alias"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    version: "{{ lambda_function.meta.version }}"
+  check_mode: yes
+  register: update_check
+
+- name: Update the Lambda function alias (changed)
+  lambda_alias:
+    name: "test"
+    description: "updated alias"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    version: "{{ lambda_function.meta.version }}"
+  register: update_changed
+
+- name: Update the Lambda function alias (unchanged)
+  lambda_alias:
+    name: "test"
+    description: "updated alias"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    version: "{{ lambda_function.meta.version }}"
+  register: update_unchanged
+
+- name: Check results
+  assert:
+    that:
+      - create_check is changed
+      - create_changed is changed
+      - create_unchanged is not changed
+      - update_check is changed
+      - update_changed is changed
+      - update_unchanged is not changed
