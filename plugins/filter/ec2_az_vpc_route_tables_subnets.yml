@@ -1,0 +1,25 @@
+DOCUMENTATION:
+  name: ec2_az_vpc_route_tables_subnets
+  short_description: generate a list of subnets from availability zones
+  description:
+    - Use the input zones dictionary and provided subnet format string to build a list of subnets.
+  positional: _input, subnet
+  options:
+    _input:
+      description: A dictionary of availability zones. The key is the zone name. The value is unused.
+      type: dict
+      required: true
+    subnet:
+      description: The subnet format string. The placeholder will be replaced with a number representing the availability zone, with ``a`` being ``0``.
+      type: str
+      required: true
+
+EXAMPLES: |
+  - '{"us-east-1a": {}, "us-east-1b": {}} | mattclay.aws.ec2_az_vpc_route_tables_subnets("192.168.%s.0/24") == ["192.168.0.0/24", "192.168.1.0/24"]'
+  - '{"us-east-1f": {}} | mattclay.aws.ec2_az_vpc_route_tables_subnets("192.168.%s.0/24") == ["192.168.5.0/24"]'
+
+RETURN:
+  _value:
+    description: A list of subnets.
+    type: list
+    elements: str

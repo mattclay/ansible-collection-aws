@@ -1,0 +1,27 @@
+DOCUMENTATION:
+  name: map_format
+  short_description: format a string using
+  description:
+    - Use a dictionary of input values to render the given format string.
+  positional: _input, fmt
+  options:
+    _input:
+      description: A dictionary of values available to be used in the format string.
+      type: dict
+      required: true
+    fmt:
+      description: A format string to render.
+      type: str
+      required: true
+
+EXAMPLES: |
+  - '{} | mattclay.aws.map_format("Hello") == "Hello"'
+  - '{"age": 21} | mattclay.aws.map_format("Hello {name} {age}", name="Bob") == "Hello Bob 21"'
+  - '{"name": "World"} | mattclay.aws.map_format("Hello {name}") == "Hello World"'
+  - '{"name": "World"} | mattclay.aws.map_format("Hello {name}", name="Bob") == "Hello Bob"'
+  - '{"name": "World"} | mattclay.aws.map_format("Hello {name} {0}", 3) == "Hello World 3"'
+
+RETURN:
+  _value:
+    description: Rendered string.
+    type: str
