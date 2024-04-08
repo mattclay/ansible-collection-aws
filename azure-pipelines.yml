@@ -18,7 +18,7 @@ pool:
 steps:
   - task: UsePythonVersion@0
     inputs:
-      versionSpec: '3.9'
+      versionSpec: '3.12'
     displayName: Install Python
   - checkout: self
     path: ansible_collections/mattclay/aws
