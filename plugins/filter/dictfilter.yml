@@ -1,0 +1,29 @@
+DOCUMENTATION:
+  name: dictfilter
+  short_description: filter a dictionary to return only the specified keys
+  description:
+    - The input dictionary will be returned with only the specified keys present.
+  positional: _input, keys
+  options:
+    _input:
+      description: A dictionary to filter.
+      type: dict
+      required: true
+    keys:
+      description: The list of dictionary keys to preserve.
+      type: list
+      elements: str
+      required: true
+
+EXAMPLES: |
+  - '{} | mattclay.aws.dictfilter([]) == {}'
+  - '{} | mattclay.aws.dictfilter(["a"]) == {}'
+  - '{"a": 1} | mattclay.aws.dictfilter(["a"]) == {"a": 1}'
+  - '{"a": 1, "b": 2} | mattclay.aws.dictfilter(["a"]) == {"a": 1}'
+  - '{"a": 1, "b": 2} | mattclay.aws.dictfilter(["a", "b"]) == {"a": 1, "b": 2}'
+  - '{"a": 1, "b": 2} | mattclay.aws.dictfilter(["c"]) == {}'
+
+RETURN:
+  _value:
+    description: The dictionary with only the specified keys present.
+    type: dict

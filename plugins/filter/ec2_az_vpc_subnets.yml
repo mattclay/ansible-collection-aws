@@ -1,0 +1,29 @@
+DOCUMENTATION:
+  name: ec2_az_vpc_subnets
+  short_description: generate a list of availability zones and subnets
+  description:
+    - Use the input zones dictionary, provided subnet format string and tag name to build a list of availiability zones with subnets.
+  positional: _input, subnet, name
+  options:
+    _input:
+      description: A dictionary of availability zones. The key is the zone name. The value is unused.
+      type: dict
+      required: true
+    subnet:
+      description: The subnet format string. The placeholder will be replaced with a number representing the availability zone, with ``a`` being ``0``.
+      type: str
+      required: true
+    name:
+      description: The name (tag) to apply to the subnet.
+      type: str
+      required: true
+
+EXAMPLES: |
+  - '{"us-east-1a": {}} | mattclay.aws.ec2_az_vpc_subnets("192.168.%s.0/24", "Bob") == [{ "az": "us-east-1a", "cidr": "192.168.0.0/24", "resource_tags": {"Name": "Bob"}}]'
+  - '{"us-east-1f": {}} | mattclay.aws.ec2_az_vpc_subnets("192.168.%s.0/24", "Bob") == [{ "az": "us-east-1f", "cidr": "192.168.5.0/24", "resource_tags": {"Name": "Bob"}}]'
+
+RETURN:
+  _value:
+    description: A list of dictionaries representing the generated availability zones and subnets.
+    type: list
+    elements: dict
