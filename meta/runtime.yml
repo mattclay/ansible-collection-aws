@@ -14,4 +14,4 @@ action_groups:
     - sqs_event
     - sqs_fifo_queue
     # external collections
-    - community.aws.iam_role
+    - amazon.aws.iam_role
