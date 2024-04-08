@@ -42,6 +42,7 @@ options:
         description:
             - The description of the alias.
         type: str
+        default: ''
 extends_documentation_fragment:
     - amazon.aws.aws
     - amazon.aws.ec2

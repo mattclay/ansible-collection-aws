@@ -1,5 +1,5 @@
 - name: Create a role
-  community.aws.iam_role:
+  amazon.aws.iam_role:
     name: "{{ iam_role_name }}"
     assume_role_policy_document:
       Version: '2012-10-17'
