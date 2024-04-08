@@ -63,6 +63,7 @@ options:
         description:
             - The description of the Lambda function.
         type: str
+        default: ''
     timeout:
         description:
             - The timeout (in minutes) for execution of the Lambda function.

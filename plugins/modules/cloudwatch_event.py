@@ -33,6 +33,7 @@ options:
         description:
             - Description of the rule.
         type: str
+        default: ''
     state:
         description:
             - If C(enabled) the rule will exist and be enabled.

@@ -43,10 +43,12 @@ options:
         description:
             - The stage description used for deployment.
         type: str
+        default: ''
     deployment_description:
         description:
             - The deployment description used for deployment.
         type: str
+        default: ''
     mode:
         description:
             - If C(merge) the specification will be merged into the existing API.
@@ -65,6 +67,7 @@ options:
         description:
             - Stage variables to include in the deployment.
         type: dict
+        default: {}
 extends_documentation_fragment:
     - amazon.aws.aws
     - amazon.aws.ec2
