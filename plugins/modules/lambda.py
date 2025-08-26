@@ -106,6 +106,45 @@ options:
             - A list of layers used by the Lambda function.
         type: list
         elements: str
+    log_format:
+        description:
+            - The format of the Lambda function logs sent to CloudWatch.
+        type: str
+        default: Text
+        choices:
+            - JSON
+            - Text
+    log_group:
+        description:
+            - The CloudWatch log group to send the Lambda function logs to.
+            - If not set, the default log group named after the function will be used.
+        type: str
+    application_log_level:
+        description:
+            - The log level filter for Lambda function log messages sent to CloudWatch.
+            - Only messages at the selected level and lower are logged, with C(fatal) being the lowest level.
+            - Ignored when log_format is not JSON.
+        type: str
+        default: info
+        choices:
+            - trace
+            - debug
+            - info
+            - warn
+            - error
+            - fatal
+    system_log_level:
+        description:
+            - The log level filter for Lambda system log messages sent to CloudWatch.
+            - Only messages at the selected level and lower are logged, with C(warn) being the lowest level.
+            - Ignored when log_format is not JSON.
+        type: str
+        default: info
+        choices:
+            - debug
+            - info
+            - warn
+
 extends_documentation_fragment:
     - amazon.aws.common.modules
     - amazon.aws.region.modules
@@ -176,6 +215,10 @@ def main():
         preserve_environment=dict(required=False, default=False, type='bool'),
         environment=dict(required=False, default=None, type='dict'),
         layers=dict(required=False, default=None, type='list', elements='str'),
+        log_format=dict(required=False, default='Text', type='str', choices=['JSON', 'Text']),
+        log_group=dict(required=False, default=None, type='str'),
+        application_log_level=dict(required=False, default='info', type='str', choices=['trace', 'debug', 'info', 'warn', 'error', 'fatal']),
+        system_log_level=dict(required=False, default='info', type='str', choices=['debug', 'info', 'warn']),
     ))
 
     module = AnsibleModule(
@@ -445,7 +488,15 @@ class LambdaModule:
             memory_size=data['MemorySize'],
             environment=(data.get('Environment') or {}).get('Variables') or {},
             layers=data.get('Layers'),
+            log_format=data['LoggingConfig']['LogFormat'],
+            log_group=data['LoggingConfig']['LogGroup'],
         )
+
+        if data['LoggingConfig']['LogFormat'] == 'JSON':
+            result.update(
+                application_log_level=data['LoggingConfig']['ApplicationLogLevel'].lower(),
+                system_log_level=data['LoggingConfig']['SystemLogLevel'].lower(),
+            )
 
         if 'CodeSha256' in data:
             more = dict(
@@ -472,8 +523,18 @@ class LambdaModule:
             'MemorySize': self.params['memory_size'],
             'Environment': None,
             'Layers': self.params['layers'],
+            'LoggingConfig': {
+                'LogFormat': self.params['log_format'],
+                'LogGroup': self.params['log_group'] or f'/aws/lambda/{self.params["function_name"]}',
+            },
             # VpcConfig not implemented
         }
+
+        if self.params['log_format'] == 'JSON':
+            args['LoggingConfig'].update({
+                'ApplicationLogLevel': self.params['application_log_level'].upper(),
+                'SystemLogLevel': self.params['system_log_level'].upper(),
+            })
 
         if self.params['environment']:
             args['Environment'] = {
