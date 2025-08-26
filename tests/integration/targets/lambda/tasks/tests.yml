@@ -78,12 +78,91 @@
     qualifier: "test"
   register: update_unchanged
 
+- name: Update Lambda function to use custom logging (check)
+  lambda:
+    name: "{{ function_name }}"
+    code: "# updated code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: yes
+    qualifier: "test"
+    log_format: JSON
+    log_group: "/aws/lambda/{{ function_name }}-custom"
+    application_log_level: debug
+    system_log_level: warn
+  check_mode: yes
+  register: logging_check
+
+- name: Update Lambda function to use custom logging (changed)
+  lambda:
+    name: "{{ function_name }}"
+    code: "# no actual code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: yes
+    qualifier: "test"
+    log_format: JSON
+    log_group: "/aws/lambda/{{ function_name }}-custom"
+    application_log_level: debug
+    system_log_level: warn
+  register: logging_changed
+
+- name: Update Lambda function to use custom logging (unchanged)
+  lambda:
+    name: "{{ function_name }}"
+    code: "# no actual code"
+    runtime: python3.8
+    timeout: 60
+    handler: lambda_function.lambda_handler
+    memory_size: 128
+    role: "{{ iam_role_arn }}"
+    publish: no  # publishing would force an update and thus report changed
+    qualifier: "test"
+    log_format: JSON
+    log_group: "/aws/lambda/{{ function_name }}-custom"
+    application_log_level: debug
+    system_log_level: warn
+  register: logging_unchanged
+
 - name: Check results
   assert:
     that:
       - create_check is changed
+      - create_check.meta.log_format == 'Text'
+      - create_check.meta.log_group == ("/aws/lambda/" + function_name)
       - create_changed is changed
+      - create_changed.meta.log_format == 'Text'
+      - create_changed.meta.log_group == ("/aws/lambda/" + function_name)
       - create_unchanged is not changed
+      - create_unchanged.meta.log_format == 'Text'
+      - create_unchanged.meta.log_group == ("/aws/lambda/" + function_name)
       - update_check is changed
+      - update_check.meta.log_format == 'Text'
+      - update_check.meta.log_group == ("/aws/lambda/" + function_name)
       - update_changed is changed
+      - update_changed.meta.log_format == 'Text'
+      - update_changed.meta.log_group == ("/aws/lambda/" + function_name)
       - update_unchanged is not changed
+      - update_unchanged.meta.log_format == 'Text'
+      - update_unchanged.meta.log_group == ("/aws/lambda/" + function_name)
+      - logging_check is changed
+      - logging_check.meta.log_format == 'JSON'
+      - logging_check.meta.application_log_level == 'debug'
+      - logging_check.meta.system_log_level == 'warn'
+      - logging_check.meta.log_group == ("/aws/lambda/" + function_name + "-custom")
+      - logging_changed is changed
+      - logging_changed.meta.log_format == 'JSON'
+      - logging_changed.meta.application_log_level == 'debug'
+      - logging_changed.meta.system_log_level == 'warn'
+      - logging_changed.meta.log_group == ("/aws/lambda/" + function_name + "-custom")
+      - logging_unchanged is not changed
+      - logging_unchanged.meta.log_format == 'JSON'
+      - logging_unchanged.meta.application_log_level == 'debug'
+      - logging_unchanged.meta.system_log_level == 'warn'
+      - logging_unchanged.meta.log_group == ("/aws/lambda/" + function_name + "-custom")
