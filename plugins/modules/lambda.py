@@ -168,6 +168,7 @@ lambda:
 
 import base64
 import hashlib
+import io
 import os
 import zipfile
 import time
@@ -187,10 +188,6 @@ from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
     ec2_argument_spec,
     get_aws_connection_info,
     HAS_BOTO3,
-)
-
-from ansible.module_utils.six import (
-    BytesIO,
 )
 
 
@@ -339,7 +336,7 @@ class LambdaModule:
         return self.package
 
     def create_package(self, code):
-        data = BytesIO()
+        data = io.BytesIO()
         zip_info = zipfile.ZipInfo(
             'lambda_function.py',
             (1980, 1, 1, 0, 0, 0),

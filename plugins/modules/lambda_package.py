@@ -50,13 +50,10 @@ lambda_package:
 '''
 
 import errno
+import io
 import os
 import zipfile
 import fnmatch
-
-from ansible.module_utils.six import (
-    BytesIO,
-)
 
 from ansible.module_utils.basic import (
     AnsibleModule,
@@ -139,7 +136,7 @@ class LambdaPackageModule:
                 paths.append((dst_path, src_path))
 
         paths = sorted(paths)
-        data = BytesIO()
+        data = io.BytesIO()
 
         with zipfile.ZipFile(data, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             for dst_path, src_path in paths:
