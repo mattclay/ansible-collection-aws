@@ -15,33 +15,21 @@ author:
     - Matt Clay (@mattclay) <matt@mystile.com>
 requirements:
     - boto3
-    - botocore
-extends_documentation_fragment:
-    - amazon.aws.common.modules
-    - amazon.aws.region.modules
 '''
 
 EXAMPLES = '''
 aws_availability_zone_facts:
 '''
 
-from ansible.module_utils.basic import (
-    AnsibleModule,
-)
+from ..module_utils.aws import AwsModule
 
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
-    boto3_conn,
-    camel_dict_to_snake_dict,
-    ec2_argument_spec,
-    get_aws_connection_info,
-    HAS_BOTO3,
-)
+from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
 
 
 def main():
-    argument_spec = ec2_argument_spec()
+    argument_spec = {}
 
-    module = AnsibleModule(
+    module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
     )
@@ -57,21 +45,13 @@ def main():
 
 
 class AwsAvailabilityZoneFactsModule:
-    def __init__(self, module, check_mode, params):
+    def __init__(self, module: AwsModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
         self.params = params
-        self.ec2 = None
+        self.ec2 = module.client.ec2
 
     def run(self):
-        if not HAS_BOTO3:
-            return 'the boto3 python module is required to use this module', {}
-
-        region, ec2_url, aws_connect_kwargs = get_aws_connection_info(self.module, boto3=True)
-
-        self.ec2 = boto3_conn(self.module, conn_type='client', resource='ec2', region=region, endpoint=ec2_url,
-                              **aws_connect_kwargs)
-
         zones = self.ec2.describe_availability_zones()['AvailabilityZones']
         zones = [camel_dict_to_snake_dict(z) for z in zones]
 

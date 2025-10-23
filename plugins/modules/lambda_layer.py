@@ -15,7 +15,6 @@ author:
     - Matt Clay (@mattclay) <matt@mystile.com>
 requirements:
     - boto3
-    - botocore
 options:
     name:
         description:
@@ -49,9 +48,6 @@ options:
             - absent
         default: present
         type: str
-extends_documentation_fragment:
-    - amazon.aws.common.modules
-    - amazon.aws.region.modules
 '''
 
 EXAMPLES = '''
@@ -70,33 +66,22 @@ import base64
 import hashlib
 import datetime
 
-from ansible.module_utils.basic import (
-    AnsibleModule,
-)
+from ..module_utils.aws import AwsModule
 
-from ansible.module_utils.common.dict_transformations import (
-    camel_dict_to_snake_dict,
-)
-
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
-    boto3_conn,
-    ec2_argument_spec,
-    get_aws_connection_info,
-)
+from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
 
 
 def main():
-    argument_spec = ec2_argument_spec()
-    argument_spec.update(dict(
+    argument_spec = dict(
         name=dict(type='str', required=True),
         description=dict(type='str'),
         compatible_runtimes=dict(type='list', elements='str'),
         path=dict(type='path', required=True),
         license_info=dict(type='str'),
         state=dict(default='present', type='str', choices=['present', 'absent']),
-    ))
+    )
 
-    module = AnsibleModule(
+    module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
     )
@@ -106,11 +91,11 @@ def main():
 
 
 class LambdaLayerModule:
-    def __init__(self, module, check_mode, params):
+    def __init__(self, module: AwsModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
         self.zip_file = None
-        self.lambda_client = None
+        self.lambda_client: LambdaClient | None = None
 
         self.name = params['name']
         self.description = params['description']
@@ -153,7 +138,7 @@ class LambdaLayerModule:
                 account_id = latest_layer_version['LayerVersionArn'].split(':')[4]
                 version = latest_layer_version['Version'] + 1
             else:
-                account_id = '0'  # this could be retrieved for a more accurate result in check mode
+                account_id = self.module.account_id
                 version = 1
 
             layer_arn = "arn:aws:lambda:%s:%s:layer:%s" % (self.lambda_client.region, account_id, self.name)
@@ -168,7 +153,7 @@ class LambdaLayerModule:
                 LayerArn=layer_arn,
                 LayerVersionArn=layer_version_arn,
                 Description=self.description,
-                CreatedDate=datetime.datetime.utcnow().isoformat(),  # close, but not exact, AWS returns "2019-03-30T08:52:06.009+0000"
+                CreatedDate=datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),  # close, but not exact, AWS returns "2019-03-30T08:52:06.009+0000"
                 Version=version,
                 CompatibleRuntimes=self.compatible_runtimes,
                 LicenseInfo=self.license_info,
@@ -238,12 +223,10 @@ class LambdaLayerModule:
         return self.zip_file
 
 
-class LambdaClient(object):
-    def __init__(self, module):
-        region, endpoint, boto_params = get_aws_connection_info(module, boto3=True)
-
-        self.client = boto3_conn(module, conn_type='client', resource='lambda', region=region, endpoint=endpoint, **boto_params)
-        self.region = region
+class LambdaClient:
+    def __init__(self, module: AwsModule) -> None:
+        self.client = module.client.awslambda
+        self.region = module.region
 
     def publish_layer_version(self, layer_name, content, description, compatible_runtimes, license_info):
         """

@@ -15,7 +15,6 @@ author:
     - Matt Clay (@mattclay) <matt@mystile.com>
 requirements:
     - boto3
-    - botocore
 options:
     function_name:
         description:
@@ -47,9 +46,6 @@ options:
             - The service that will invoke the function.
         required: true
         type: str
-extends_documentation_fragment:
-    - amazon.aws.common.modules
-    - amazon.aws.region.modules
 '''
 
 EXAMPLES = '''
@@ -63,36 +59,21 @@ lambda_policy:
 import json
 import uuid
 
-try:
-    import botocore
-    import botocore.exceptions
-except ImportError:
-    botocore = None
+from ..module_utils.aws import AwsModule
 
-from ansible.module_utils.basic import (
-    AnsibleModule,
-)
-
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
-    boto3_conn,
-    camel_dict_to_snake_dict,
-    ec2_argument_spec,
-    get_aws_connection_info,
-    HAS_BOTO3,
-)
+from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
 
 
 def main():
-    argument_spec = ec2_argument_spec()
-    argument_spec.update(dict(
+    argument_spec = dict(
         function_name=dict(required=True, type='str', aliases=['name']),
         state=dict(required=False, default='present', type='str', choices=['present', 'absent']),
         source_arn=dict(required=True, type='str'),
         qualifier=dict(required=False, default=None, type='str'),
         principal_service=dict(required=True, type='str'),
-    ))
+    )
 
-    module = AnsibleModule(
+    module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
     )
@@ -108,29 +89,17 @@ def main():
 
 
 class LambdaPolicyModule:
-    def __init__(self, module, check_mode, params):
+    def __init__(self, module: AwsModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
         self.params = params
-        self.al = None
-        self.iam = None
-        self.account_id = None
+        self.al = module.client.awslambda
 
     def run(self):
-        if not HAS_BOTO3:
-            return 'the boto3 python module is required to use this module', None, None
+        region = self.module.region
+        account_id = self.module.account_id
 
-        region, ec2_url, aws_connect_kwargs = get_aws_connection_info(self.module, boto3=True)
-
-        self.al = boto3_conn(self.module, conn_type='client', resource='lambda', region=region, endpoint=ec2_url,
-                             **aws_connect_kwargs)
-
-        self.iam = boto3_conn(self.module, conn_type='resource', resource='iam', region=region, endpoint=ec2_url,
-                              **aws_connect_kwargs)
-
-        self.account_id = self.iam.CurrentUser().arn.split(':')[4]
-
-        self.params['function_arn'] = 'arn:aws:lambda:%s:%s:function:%s' % (region, self.account_id, self.params['function_name'])
+        self.params['function_arn'] = 'arn:aws:lambda:%s:%s:function:%s' % (region, account_id, self.params['function_name'])
 
         if self.params['qualifier']:
             self.params['function_arn'] += ':%s' % self.params['qualifier']
@@ -174,10 +143,8 @@ class LambdaPolicyModule:
             )
             policy = json.loads(result['Policy'])
             return policy['Statement']
-        except botocore.exceptions.ClientError as ex:
-            if ex.response['Error']['Code'] == 'ResourceNotFoundException':
-                return []
-            raise
+        except self.al.exceptions.ResourceNotFoundException:
+            return []
 
     def create_permission(self):
         args = dict(

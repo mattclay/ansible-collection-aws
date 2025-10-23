@@ -39,9 +39,6 @@ options:
             - absent
         default: present
         type: str
-extends_documentation_fragment:
-    - amazon.aws.common.modules
-    - amazon.aws.region.modules
 '''
 
 EXAMPLES = '''
@@ -53,34 +50,18 @@ sqs_event:
 
 import time
 
-try:
-    import botocore.exceptions
-except ImportError:
-    botocore = None
-
-from ansible.module_utils.basic import (
-    AnsibleModule,
-    missing_required_lib,
-)
-
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
-    HAS_BOTO3,
-    boto3_conn,
-    ec2_argument_spec,
-    get_aws_connection_info,
-)
+from ..module_utils.aws import AwsModule
 
 
 def main():
-    argument_spec = ec2_argument_spec()
-    argument_spec.update(dict(
+    argument_spec = dict(
         source_arn=dict(type='str', required=True),
         function_arn=dict(type='str'),
         batch_size=dict(type='int', default=1),
         state=dict(required=False, default='present', type='str', choices=['present', 'absent']),
-    ))
+    )
 
-    module = AnsibleModule(
+    module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
         required_if=[
@@ -90,12 +71,7 @@ def main():
         ],
     )
 
-    if not HAS_BOTO3:
-        module.fail_json(msg=missing_required_lib('boto3'))
-
-    region, ec2_url, aws_connect_kwargs = get_aws_connection_info(module, boto3=True)
-
-    lambda_client = boto3_conn(module, conn_type='client', resource='lambda', region=region, endpoint=ec2_url, **aws_connect_kwargs)
+    lambda_client = module.client.awslambda
 
     source_arn = module.params['source_arn']
     function_arn = module.params['function_arn']
@@ -131,10 +107,7 @@ def main():
             try:
                 wait_until_ready(lambda_client, mapping)
                 changed = True
-            except botocore.exceptions.ClientError as ex:
-                if ex.response['Error']['Code'] != 'ResourceNotFoundException':
-                    raise
-
+            except lambda_client.exceptions.ResourceNotFoundException:
                 changed = False
 
             if changed and not module.check_mode:

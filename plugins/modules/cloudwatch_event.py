@@ -15,7 +15,6 @@ author:
     - Matt Clay (@mattclay) <matt@mystile.com>
 requirements:
     - boto3
-    - botocore
 options:
     rule_name:
         description:
@@ -48,9 +47,6 @@ options:
             - absent
         default: enabled
         type: str
-extends_documentation_fragment:
-    - amazon.aws.common.modules
-    - amazon.aws.region.modules
 '''
 
 EXAMPLES = '''
@@ -63,35 +59,19 @@ cloudwatch_event:
 
 import uuid
 
-try:
-    import botocore
-    import botocore.exceptions
-except ImportError:
-    botocore = None
-
-from ansible.module_utils.basic import (
-    AnsibleModule,
-)
-
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
-    boto3_conn,
-    ec2_argument_spec,
-    get_aws_connection_info,
-    HAS_BOTO3,
-)
+from ..module_utils.aws import AwsModule
 
 
 def main():
-    argument_spec = ec2_argument_spec()
-    argument_spec.update(dict(
+    argument_spec = dict(
         rule_name=dict(required=True, type='str'),
         function_name=dict(required=True, type='str'),
         schedule_expression=dict(required=True, type='str'),
         description=dict(required=False, default='', type='str'),
         state=dict(required=False, default='enabled', type='str', choices=['enabled', 'disabled', 'absent']),
-    ))
+    )
 
-    module = AnsibleModule(
+    module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
     )
@@ -107,30 +87,18 @@ def main():
 
 
 class EventsModule:
-    def __init__(self, module, check_mode, params):
+    def __init__(self, module: AwsModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
         self.params = params
-        self.events = None
-        self.iam = None
-        self.account_id = None
+        self.events = module.client.events
 
     def run(self):
-        if not HAS_BOTO3:
-            return 'the boto3 python module is required to use this module', None, None
-
-        region, ec2_url, aws_connect_kwargs = get_aws_connection_info(self.module, boto3=True)
-
-        self.events = boto3_conn(self.module, conn_type='client', resource='events', region=region, endpoint=ec2_url,
-                                 **aws_connect_kwargs)
-
-        self.iam = boto3_conn(self.module, conn_type='resource', resource='iam', region=region, endpoint=ec2_url,
-                              **aws_connect_kwargs)
-
-        self.account_id = self.iam.CurrentUser().arn.split(':')[4]
+        account_id = self.module.account_id
+        region = self.module.region
 
         if not self.params['function_name'].startswith('arn:aws:iam:'):
-            self.params['function_name'] = 'arn:aws:lambda:%s:%s:function:%s' % (region, self.account_id, self.params['function_name'])
+            self.params['function_name'] = 'arn:aws:lambda:%s:%s:function:%s' % (region, account_id, self.params['function_name'])
 
         choice_map = dict(
             enabled=self.function_present,
@@ -154,10 +122,8 @@ class EventsModule:
     def get_rule(self):
         try:
             return self.events.describe_rule(Name=self.params['rule_name'])
-        except botocore.exceptions.ClientError as ex:
-            if ex.response['Error']['Code'] == 'ResourceNotFoundException':
-                return None
-            raise
+        except self.events.exceptions.ResourceNotFoundException:
+            return None
 
     def put_rule(self, remote_rule=None):
         local_rule = dict(
@@ -175,7 +141,7 @@ class EventsModule:
         else:
             rule_changed = any(k for k in local_rule if local_rule[k] != remote_rule.get(k, ''))
             targets = self.events.list_targets_by_rule(Rule=self.params['rule_name'])['Targets']
-            targets = [t for t in targets if t['Arn'] == self.params['function_name']]
+            targets = [target for target in targets if target['Arn'] == self.params['function_name']]
             target_changed = not bool(targets)
             data.update(remote_rule)
 

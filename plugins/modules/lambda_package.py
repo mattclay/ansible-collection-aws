@@ -13,9 +13,6 @@ description:
     - Package files in a ZIP archive for deployment as Lambda functions.
 author:
     - Matt Clay (@mattclay) <matt@mystile.com>
-requirements:
-    - boto3
-    - botocore
 options:
     src:
         description:
@@ -58,9 +55,7 @@ import os
 import zipfile
 import fnmatch
 
-from ansible.module_utils.basic import (
-    AnsibleModule,
-)
+from ansible.module_utils.basic import AnsibleModule
 
 
 def main():
@@ -82,7 +77,7 @@ def main():
 
 
 class LambdaPackageModule:
-    def __init__(self, module, check_mode, params):
+    def __init__(self, module: AnsibleModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
         self.src = params['src']

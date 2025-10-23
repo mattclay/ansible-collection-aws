@@ -15,32 +15,19 @@ author:
     - Matt Clay (@mattclay) <matt@mystile.com>
 requirements:
     - boto3
-    - botocore
-extends_documentation_fragment:
-    - amazon.aws.common.modules
-    - amazon.aws.region.modules
 '''
 
 EXAMPLES = '''
 aws_account_facts:
 '''
 
-from ansible.module_utils.basic import (
-    AnsibleModule,
-)
-
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
-    boto3_conn,
-    ec2_argument_spec,
-    get_aws_connection_info,
-    HAS_BOTO3,
-)
+from ..module_utils.aws import AwsModule
 
 
 def main():
-    argument_spec = ec2_argument_spec()
+    argument_spec = {}
 
-    module = AnsibleModule(
+    module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
     )
@@ -56,26 +43,14 @@ def main():
 
 
 class AwsAccountFactsModule:
-    def __init__(self, module, check_mode, params):
+    def __init__(self, module: AwsModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
         self.params = params
 
     def run(self):
-        if not HAS_BOTO3:
-            return 'the boto3 python module is required to use this module', None
-
-        region, endpoint, aws_connect_kwargs = get_aws_connection_info(self.module, boto3=True)
-
-        sts = boto3_conn(self.module, conn_type='client', resource='sts', region=region, endpoint=endpoint,
-                         **aws_connect_kwargs)
-
-        caller_identity = sts.get_caller_identity()
-        caller_arn = caller_identity['Arn']
-        caller_account_id = caller_arn.split(':')[4]
-
         facts = dict(
-            aws_account_id=caller_account_id,
+            aws_account_id=self.module.account_id,
         )
 
         return None, facts
