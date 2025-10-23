@@ -288,10 +288,9 @@ class LambdaModule:
 
         if self.params['local_path'] is not None:
             local_path = self.params['local_path']
+            local_contents = ''
 
-            if self.check_mode and not os.path.exists(local_path):
-                local_contents = ''
-            else:
+            if not self.check_mode or os.path.exists(local_path):
                 with open(local_path, 'rb') as f:
                     local_contents = f.read()
 
