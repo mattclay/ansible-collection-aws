@@ -291,8 +291,7 @@ class LambdaClient:
 
             marker = response.get('NextMarker')
 
-            for layer_version in response['LayerVersions']:
-                yield layer_version
+            yield from response['LayerVersions']
 
             if not marker:
                 break
