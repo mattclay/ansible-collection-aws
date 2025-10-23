@@ -80,8 +80,8 @@ class LambdaPackageModule:
     def __init__(self, module: AnsibleModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
-        self.src = params['src']
-        self.dest = params['dest']
+        self.src: str = params['src']
+        self.dest: str = params['dest']
         self.include = params['include']
         self.exclude = params['exclude']
         self.rename = params['rename'] or {}
