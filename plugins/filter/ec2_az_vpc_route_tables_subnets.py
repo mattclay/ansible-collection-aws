@@ -1,6 +1,8 @@
 # Copyright (C) 2016 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import annotations
+
 
 def ec2_az_vpc_route_tables_subnets(zones, subnet):
     return [map_zone_to_subnet(z, subnet) for z in zones]
@@ -11,7 +13,7 @@ def map_zone_to_subnet(zone, subnet):
     return subnet % position
 
 
-class FilterModule(object):
+class FilterModule:
     def filters(self):
         return dict(
             ec2_az_vpc_route_tables_subnets=ec2_az_vpc_route_tables_subnets,
