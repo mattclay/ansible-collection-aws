@@ -2,6 +2,9 @@
 # Copyright (C) 2021 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import annotations
+
+
 DOCUMENTATION = '''
 ---
 module: sqs_fifo_queue
@@ -35,9 +38,6 @@ options:
             - absent
         default: present
         type: str
-extends_documentation_fragment:
-    - amazon.aws.common.modules
-    - amazon.aws.region.modules
 '''
 
 EXAMPLES = '''
@@ -47,29 +47,18 @@ sqs_fifo_queue:
     visibility_timeout: 30
 '''
 
-from ansible.module_utils.basic import (
-    AnsibleModule,
-    missing_required_lib,
-)
-
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
-    HAS_BOTO3,
-    boto3_conn,
-    ec2_argument_spec,
-    get_aws_connection_info,
-)
+from ..module_utils.aws import AwsModule
 
 
 def main():
-    argument_spec = ec2_argument_spec()
-    argument_spec.update(dict(
+    argument_spec = dict(
         name=dict(type='str', required=True),
         message_retention_period=dict(type='int'),
         visibility_timeout=dict(type='int'),
         state=dict(required=False, default='present', type='str', choices=['present', 'absent']),
-    ))
+    )
 
-    module = AnsibleModule(
+    module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
         required_if=[
@@ -80,12 +69,7 @@ def main():
         ],
     )
 
-    if not HAS_BOTO3:
-        module.fail_json(msg=missing_required_lib('boto3'))
-
-    region, ec2_url, aws_connect_kwargs = get_aws_connection_info(module, boto3=True)
-
-    sqs_resource = boto3_conn(module, conn_type='resource', resource='sqs', region=region, endpoint=ec2_url, **aws_connect_kwargs)
+    sqs_resource = module.resource.sqs
 
     queue_name = module.params['name']
     state = module.params['state']

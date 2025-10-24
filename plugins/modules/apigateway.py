@@ -2,6 +2,9 @@
 # Copyright (C) 2016 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import annotations
+
+
 DOCUMENTATION = '''
 ---
 module: apigateway
@@ -12,7 +15,6 @@ author:
     - Matt Clay (@mattclay) <matt@mystile.com>
 requirements:
     - boto3
-    - botocore
 options:
     state:
         description:
@@ -68,9 +70,6 @@ options:
             - Stage variables to include in the deployment.
         type: dict
         default: {}
-extends_documentation_fragment:
-    - amazon.aws.common.modules
-    - amazon.aws.region.modules
 '''
 
 EXAMPLES = '''
@@ -86,27 +85,11 @@ apigateway:
 
 import json
 
-try:
-    import botocore
-    import botocore.exceptions
-except ImportError:
-    botocore = None
-
-from ansible.module_utils.basic import (
-    AnsibleModule,
-)
-
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
-    boto3_conn,
-    ec2_argument_spec,
-    get_aws_connection_info,
-    HAS_BOTO3,
-)
+from ..module_utils.aws import AwsModule
 
 
 def main():
-    argument_spec = ec2_argument_spec()
-    argument_spec.update(dict(
+    argument_spec = dict(
         state=dict(required=False, default='present', type='str', choices=['present', 'absent']),
         swagger=dict(required=True, type='str'),
         api_name=dict(required=False, default=None, type='str'),
@@ -116,9 +99,9 @@ def main():
         mode=dict(required=False, default='merge', type='str', choices=['merge', 'overwrite']),
         fail_on_warnings=dict(required=False, default=True, type='bool'),
         stage_variables=dict(required=False, default={}, type='dict'),
-    ))
+    )
 
-    module = AnsibleModule(
+    module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
     )
@@ -134,21 +117,13 @@ def main():
 
 
 class ApiGatewayModule:
-    def __init__(self, module, check_mode, params):
+    def __init__(self, module: AwsModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
         self.params = params
-        self.ag = None
+        self.ag = module.client.apigateway
 
     def run(self):
-        if not HAS_BOTO3:
-            return 'the boto3 python module is required to use this module', None, None
-
-        region, ec2_url, aws_connect_kwargs = get_aws_connection_info(self.module, boto3=True)
-
-        self.ag = boto3_conn(self.module, conn_type='client', resource='apigateway', region=region, endpoint=ec2_url,
-                             **aws_connect_kwargs)
-
         choice_map = dict(
             present=self.api_present,
             absent=self.api_absent,
@@ -251,10 +226,8 @@ class ApiGatewayModule:
                 exportType='swagger',
                 parameters={'extensions': 'integrations'},
             )['body'].read()
-        except botocore.exceptions.ClientError as ex:
-            if ex.response['Error']['Code'] == 'NotFoundException':
-                return None
-            raise
+        except self.ag.exceptions.NotFoundException:
+            return None
 
 
 if __name__ == '__main__':

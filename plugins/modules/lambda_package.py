@@ -2,6 +2,9 @@
 # Copyright (C) 2019 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import annotations
+
+
 DOCUMENTATION = '''
 ---
 module: lambda_package
@@ -10,9 +13,6 @@ description:
     - Package files in a ZIP archive for deployment as Lambda functions.
 author:
     - Matt Clay (@mattclay) <matt@mystile.com>
-requirements:
-    - boto3
-    - botocore
 options:
     src:
         description:
@@ -50,17 +50,12 @@ lambda_package:
 '''
 
 import errno
+import io
 import os
 import zipfile
 import fnmatch
 
-from ansible.module_utils.six import (
-    BytesIO,
-)
-
-from ansible.module_utils.basic import (
-    AnsibleModule,
-)
+from ansible.module_utils.basic import AnsibleModule
 
 
 def main():
@@ -82,11 +77,11 @@ def main():
 
 
 class LambdaPackageModule:
-    def __init__(self, module, check_mode, params):
+    def __init__(self, module: AnsibleModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
-        self.src = params['src']
-        self.dest = params['dest']
+        self.src: str = params['src']
+        self.dest: str = params['dest']
         self.include = params['include']
         self.exclude = params['exclude']
         self.rename = params['rename'] or {}
@@ -139,7 +134,7 @@ class LambdaPackageModule:
                 paths.append((dst_path, src_path))
 
         paths = sorted(paths)
-        data = BytesIO()
+        data = io.BytesIO()
 
         with zipfile.ZipFile(data, 'w', zipfile.ZIP_DEFLATED) as zip_file:
             for dst_path, src_path in paths:

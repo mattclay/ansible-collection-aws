@@ -2,6 +2,9 @@
 # Copyright (C) 2016 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
+from __future__ import annotations
+
+
 DOCUMENTATION = '''
 ---
 module: lambda
@@ -12,7 +15,6 @@ author:
     - Matt Clay (@mattclay) <matt@mystile.com>
 requirements:
     - boto3
-    - botocore
 options:
     function_name:
         description:
@@ -144,10 +146,6 @@ options:
             - debug
             - info
             - warn
-
-extends_documentation_fragment:
-    - amazon.aws.common.modules
-    - amazon.aws.region.modules
 '''
 
 EXAMPLES = '''
@@ -168,35 +166,16 @@ lambda:
 
 import base64
 import hashlib
+import io
 import os
 import zipfile
 import time
 
-try:
-    import botocore
-    import botocore.exceptions
-except ImportError:
-    botocore = None
-
-from ansible.module_utils.basic import (
-    AnsibleModule,
-)
-
-from ansible_collections.amazon.aws.plugins.module_utils.ec2 import (
-    boto3_conn,
-    ec2_argument_spec,
-    get_aws_connection_info,
-    HAS_BOTO3,
-)
-
-from ansible.module_utils.six import (
-    BytesIO,
-)
+from ..module_utils.aws import AwsModule
 
 
 def main():
-    argument_spec = ec2_argument_spec()
-    argument_spec.update(dict(
+    argument_spec = dict(
         function_name=dict(required=True, type='str', aliases=['name']),
         runtime=dict(required=True, type='str'),
         role=dict(required=True, type='str'),
@@ -219,9 +198,9 @@ def main():
         log_group=dict(required=False, default=None, type='str'),
         application_log_level=dict(required=False, default='info', type='str', choices=['trace', 'debug', 'info', 'warn', 'error', 'fatal']),
         system_log_level=dict(required=False, default='info', type='str', choices=['debug', 'info', 'warn']),
-    ))
+    )
 
-    module = AnsibleModule(
+    module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
         mutually_exclusive=[
@@ -245,29 +224,16 @@ def main():
 
 
 class LambdaModule:
-    def __init__(self, module, check_mode, params):
+    def __init__(self, module: AwsModule, check_mode: bool, params: dict) -> None:
         self.module = module
         self.check_mode = check_mode
         self.params = params
         self.package = None
-        self.al = None
-        self.iam = None
+        self.al = module.client.awslambda
 
     def run(self):
-        if not HAS_BOTO3:
-            return 'the boto3 python module is required to use this module', None, None
-
-        region, ec2_url, aws_connect_kwargs = get_aws_connection_info(self.module, boto3=True)
-
-        self.al = boto3_conn(self.module, conn_type='client', resource='lambda', region=region, endpoint=ec2_url, **aws_connect_kwargs)
-
         if not self.params['role'].startswith('arn:aws:iam:'):
-            sts = boto3_conn(self.module, conn_type='client', resource='sts', region=region, endpoint=ec2_url, **aws_connect_kwargs)
-
-            caller_identity = sts.get_caller_identity()
-            caller_arn = caller_identity['Arn']
-
-            account_id = caller_arn.split(':')[4]
+            account_id = self.module.account_id
 
             self.params['role'] = 'arn:aws:iam::%s:role/%s' % (account_id, self.params['role'])
 
@@ -305,10 +271,8 @@ class LambdaModule:
                 FunctionName=self.params['function_name'],
                 **args
             )
-        except botocore.exceptions.ClientError as ex:
-            if ex.response['Error']['Code'] == 'ResourceNotFoundException':
-                return None
-            raise
+        except self.al.exceptions.ResourceNotFoundException:
+            return None
 
         if result.get('Layers'):
             result['Layers'] = [layer['Arn'] for layer in result['Layers']]
@@ -324,10 +288,9 @@ class LambdaModule:
 
         if self.params['local_path'] is not None:
             local_path = self.params['local_path']
+            local_contents = ''
 
-            if self.check_mode and not os.path.exists(local_path):
-                local_contents = ''
-            else:
+            if not self.check_mode or os.path.exists(local_path):
                 with open(local_path, 'rb') as f:
                     local_contents = f.read()
 
@@ -339,7 +302,7 @@ class LambdaModule:
         return self.package
 
     def create_package(self, code):
-        data = BytesIO()
+        data = io.BytesIO()
         zip_info = zipfile.ZipInfo(
             'lambda_function.py',
             (1980, 1, 1, 0, 0, 0),

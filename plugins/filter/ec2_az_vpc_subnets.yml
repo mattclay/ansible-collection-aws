@@ -2,7 +2,7 @@ DOCUMENTATION:
   name: ec2_az_vpc_subnets
   short_description: generate a list of availability zones and subnets
   description:
-    - Use the input zones dictionary, provided subnet format string and tag name to build a list of availiability zones with subnets.
+    - Use the input zones dictionary, provided subnet format string and tag name to build a list of availability zones with subnets.
   positional: _input, subnet, name
   options:
     _input:
