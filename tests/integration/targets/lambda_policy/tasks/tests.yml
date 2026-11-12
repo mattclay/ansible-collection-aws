@@ -1,0 +1,115 @@
+- name: Create the Lambda policy (check)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-event"
+    principal_service: events.amazonaws.com
+  check_mode: yes
+  register: create_check
+
+- name: Create the Lambda policy (changed)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-event"
+    principal_service: events.amazonaws.com
+  register: create_changed
+
+- name: Create the Lambda policy (unchanged)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-event"
+    principal_service: events.amazonaws.com
+  register: create_unchanged
+
+- name: Create the Lambda policy with qualifier (check)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    qualifier: "{{ lambda_function.meta.version }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-qualified-event"
+    principal_service: events.amazonaws.com
+  check_mode: yes
+  register: create_qualified_check
+
+- name: Create the Lambda policy with qualifier (changed)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    qualifier: "{{ lambda_function.meta.version }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-qualified-event"
+    principal_service: events.amazonaws.com
+  register: create_qualified_changed
+
+- name: Create the Lambda policy with qualifier (unchanged)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    qualifier: "{{ lambda_function.meta.version }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-qualified-event"
+    principal_service: events.amazonaws.com
+  register: create_qualified_unchanged
+
+- name: Delete the Lambda policy (check)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-event"
+    principal_service: events.amazonaws.com
+    state: absent
+  check_mode: yes
+  register: delete_check
+
+- name: Delete the Lambda policy (changed)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-event"
+    principal_service: events.amazonaws.com
+    state: absent
+  register: delete_changed
+
+- name: Delete the Lambda policy (unchanged)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-event"
+    principal_service: events.amazonaws.com
+    state: absent
+  register: delete_unchanged
+
+- name: Delete the Lambda policy with qualifier (check)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    qualifier: "{{ lambda_function.meta.version }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-qualified-event"
+    principal_service: events.amazonaws.com
+    state: absent
+  check_mode: yes
+  register: delete_qualified_check
+
+- name: Delete the Lambda policy with qualifier (changed)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    qualifier: "{{ lambda_function.meta.version }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-qualified-event"
+    principal_service: events.amazonaws.com
+    state: absent
+  register: delete_qualified_changed
+
+- name: Delete the Lambda policy with qualifier (unchanged)
+  lambda_policy:
+    function_name: "{{ function_name }}"
+    qualifier: "{{ lambda_function.meta.version }}"
+    source_arn: "arn:aws:events:{{ aws_region }}:{{ ansible_facts.aws_account_id }}:rule/{{ resource_prefix }}-qualified-event"
+    principal_service: events.amazonaws.com
+    state: absent
+  register: delete_qualified_unchanged
+
+- name: Check results
+  assert:
+    that:
+      - create_check is changed
+      - create_changed is changed
+      - create_unchanged is not changed
+      - create_qualified_check is changed
+      - create_qualified_changed is changed
+      - create_qualified_unchanged is not changed
+      - delete_check is changed
+      - delete_changed is changed
+      - delete_unchanged is not changed
+      - delete_qualified_check is changed
+      - delete_qualified_changed is changed
+      - delete_qualified_unchanged is not changed
