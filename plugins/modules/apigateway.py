@@ -91,9 +91,9 @@ from ..module_utils.aws import AwsModule
 def main():
     argument_spec = dict(
         state=dict(required=False, default='present', type='str', choices=['present', 'absent']),
-        swagger=dict(required=True, type='str'),
+        swagger=dict(required=False, type='str'),
         api_name=dict(required=False, default=None, type='str'),
-        stage_name=dict(required=True, type='str'),
+        stage_name=dict(required=False, type='str'),
         stage_description=dict(required=False, default='', type='str'),
         deployment_description=dict(required=False, default='', type='str'),
         mode=dict(required=False, default='merge', type='str', choices=['merge', 'overwrite']),
@@ -104,6 +104,10 @@ def main():
     module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
+        required_if=[
+            ['state', 'present', ['swagger', 'stage_name']],
+            ['state', 'absent', ['api_name']],
+        ],
     )
 
     ag = ApiGatewayModule(module, module.check_mode, module.params)
@@ -144,14 +148,7 @@ class ApiGatewayModule:
         if api_name is None:
             api_name = json.loads(local_swagger)['info']['title']
 
-        apis = [api for api in self.ag.get_rest_apis()['items'] if api['name'] == api_name]
-
-        if not apis:
-            api_id = None
-        elif len(apis) == 1:
-            api_id = apis[0]['id']
-        else:
-            return 'api name "%s" is ambiguous' % api_name, None, None
+        api_id = self.get_api_id(api_name)
 
         changed = False
 
@@ -200,7 +197,29 @@ class ApiGatewayModule:
         return None, False, result
 
     def api_absent(self):
-        raise Exception('FIXME: not implemented')
+        api_name = self.params['api_name']
+
+        api_id = self.get_api_id(api_name)
+
+        if not api_id:
+            return False, {}
+
+        if not self.check_mode:
+            self.ag.delete_rest_api(restApiId=api_id)
+
+        return True, dict(id=api_id)
+
+    def get_api_id(self, api_name):
+        apis = [api for api in self.ag.get_rest_apis()['items'] if api['name'] == api_name]
+
+        if not apis:
+            api_id = None
+        elif len(apis) == 1:
+            api_id = apis[0]['id']
+        else:
+            self.module.fail_json(msg='api name "%s" is ambiguous' % api_name)
+
+        return api_id
 
     def put_swagger(self, api_id, mode, fail_on_warnings, body):
         return self.ag.put_rest_api(
