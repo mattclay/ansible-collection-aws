@@ -1,0 +1,53 @@
+- name: Create a CloudWatch event (check)
+  cloudwatch_event:
+    rule_name: "{{ resource_prefix }}-event"
+    description: Test event
+    schedule_expression: rate(10 hours)
+    function_name: "{{ resource_prefix }}-lambda"  # doesn't need to exist
+  check_mode: yes
+  register: create_check
+
+- name: Create a CloudWatch event (changed)
+  cloudwatch_event:
+    rule_name: "{{ resource_prefix }}-event"
+    description: Test event
+    schedule_expression: rate(10 hours)
+    function_name: "{{ resource_prefix }}-lambda"  # doesn't need to exist
+  register: create_changed
+
+- name: Create a CloudWatch event (unchanged)
+  cloudwatch_event:
+    rule_name: "{{ resource_prefix }}-event"
+    description: Test event
+    schedule_expression: rate(10 hours)
+    function_name: "{{ resource_prefix }}-lambda"  # doesn't need to exist
+  register: create_unchanged
+
+- name: Delete a CloudWatch event (check)
+  cloudwatch_event:
+    rule_name: "{{ resource_prefix }}-event"
+    state: absent
+  check_mode: yes
+  register: delete_check
+
+- name: Delete a CloudWatch event (changed)
+  cloudwatch_event:
+    rule_name: "{{ resource_prefix }}-event"
+    state: absent
+  register: delete_changed
+
+- name: Delete a CloudWatch event (unchanged)
+  cloudwatch_event:
+    rule_name: "{{ resource_prefix }}-event"
+    state: absent
+  register: delete_unchanged
+
+- name: Check results
+  assert:
+    that:
+      - create_check is changed
+      - create_changed is changed
+      - create_unchanged is not changed
+      - delete_check is changed
+      - delete_changed is changed
+      - delete_unchanged is not changed
