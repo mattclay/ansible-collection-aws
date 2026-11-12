@@ -81,12 +81,9 @@ def main():
 
     em = EventsModule(module, module.check_mode, module.params)
 
-    error, changed, result = em.run()
+    changed, result = em.run()
 
-    if error is None:
-        module.exit_json(changed=changed, meta=result)
-    else:
-        module.fail_json(msg=error, meta=result)
+    module.exit_json(changed=changed, meta=result)
 
 
 class EventsModule:
@@ -196,9 +193,9 @@ class EventsModule:
             results.update(more)
 
         if rule_changed or target_changed:
-            return None, True, results
+            return True, results
 
-        return None, False, results
+        return False, results
 
 
 if __name__ == '__main__':

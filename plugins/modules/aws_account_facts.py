@@ -34,12 +34,9 @@ def main():
 
     lm = AwsAccountFactsModule(module, module.check_mode, module.params)
 
-    error, facts = lm.run()
+    facts = lm.run()
 
-    if error is None:
-        module.exit_json(changed=False, ansible_facts=facts)
-    else:
-        module.fail_json(msg=error)
+    module.exit_json(changed=False, ansible_facts=facts)
 
 
 class AwsAccountFactsModule:
@@ -53,7 +50,7 @@ class AwsAccountFactsModule:
             aws_account_id=self.module.account_id,
         )
 
-        return None, facts
+        return facts
 
 
 if __name__ == '__main__':

@@ -114,12 +114,9 @@ def main():
 
     ag = ApiGatewayModule(module, module.check_mode, module.params)
 
-    error, changed, result = ag.run()
+    changed, result = ag.run()
 
-    if error is None:
-        module.exit_json(changed=changed, meta=result)
-    else:
-        module.fail_json(msg=error, meta=result)
+    module.exit_json(changed=changed, meta=result)
 
 
 class ApiGatewayModule:
@@ -191,9 +188,9 @@ class ApiGatewayModule:
         )
 
         if changed:
-            return None, True, result
+            return True, result
 
-        return None, False, result
+        return False, result
 
     def api_absent(self):
         api_name = self.params['api_name']

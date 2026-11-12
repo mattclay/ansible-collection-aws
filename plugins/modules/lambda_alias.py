@@ -81,12 +81,9 @@ def main():
 
     lm = LambdaAliasModule(module, module.check_mode, module.params)
 
-    error, changed, result = lm.run()
+    changed, result = lm.run()
 
-    if error is None:
-        module.exit_json(changed=changed, meta=result)
-    else:
-        module.fail_json(msg=error, meta=result)
+    module.exit_json(changed=changed, meta=result)
 
 
 class LambdaAliasModule:
@@ -132,7 +129,7 @@ class LambdaAliasModule:
 
         result = camel_dict_to_snake_dict(args)
 
-        return None, changed, result
+        return changed, result
 
     def create_or_update_alias(self, remote_alias):
         local_alias = dict(
@@ -169,7 +166,7 @@ class LambdaAliasModule:
 
         result = camel_dict_to_snake_dict(data)
 
-        return None, changed, result
+        return changed, result
 
 
 if __name__ == '__main__':

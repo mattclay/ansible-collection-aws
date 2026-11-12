@@ -80,12 +80,9 @@ def main():
 
     lm = LambdaPolicyModule(module, module.check_mode, module.params)
 
-    error, changed, result = lm.run()
+    changed, result = lm.run()
 
-    if error is None:
-        module.exit_json(changed=changed, meta=result)
-    else:
-        module.fail_json(msg=error, meta=result)
+    module.exit_json(changed=changed, meta=result)
 
 
 class LambdaPolicyModule:
@@ -176,7 +173,7 @@ class LambdaPolicyModule:
         else:
             response = self.al.add_permission(**args)
 
-        return None, True, response
+        return True, response
 
     def remove_permission(self, remote_permission):
         args = dict(
@@ -195,7 +192,7 @@ class LambdaPolicyModule:
         return True, response
 
     def update_permission(self, remote_permission):
-        return None, False, remote_permission
+        return False, remote_permission
 
 
 if __name__ == '__main__':

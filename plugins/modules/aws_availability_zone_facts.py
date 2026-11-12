@@ -36,12 +36,9 @@ def main():
 
     lm = AwsAvailabilityZoneFactsModule(module, module.check_mode, module.params)
 
-    error, facts = lm.run()
+    facts = lm.run()
 
-    if error is None:
-        module.exit_json(changed=False, ansible_facts=facts)
-    else:
-        module.fail_json(msg=error, ansible_facts=facts)
+    module.exit_json(changed=False, ansible_facts=facts)
 
 
 class AwsAvailabilityZoneFactsModule:
@@ -59,7 +56,7 @@ class AwsAvailabilityZoneFactsModule:
             aws_availability_zones=zones,
         )
 
-        return None, facts
+        return facts
 
 
 if __name__ == '__main__':

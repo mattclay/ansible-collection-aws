@@ -215,12 +215,9 @@ def main():
 
     lm = LambdaModule(module, module.check_mode, module.params)
 
-    error, changed, result = lm.run()
+    changed, result = lm.run()
 
-    if error is None:
-        module.exit_json(changed=changed, meta=result)
-    else:
-        module.fail_json(msg=error, meta=result)
+    module.exit_json(changed=changed, meta=result)
 
 
 class LambdaModule:
@@ -336,7 +333,7 @@ class LambdaModule:
             result = self.make_result(args)
             result['version'] = 1
 
-        return None, True, result
+        return True, result
 
     def update_function(self, remote_function):
         package = self.get_package()
@@ -378,9 +375,9 @@ class LambdaModule:
         result = self.make_result(data)
 
         if code_changed or config_changed:
-            return None, True, result
+            return True, result
 
-        return None, False, result
+        return False, result
 
     def are_equal(self, first, second):
         if isinstance(first, dict):
