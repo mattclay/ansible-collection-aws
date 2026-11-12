@@ -1,0 +1,4 @@
+- name: Create a Lambda layer
+  lambda_package:
+    src: "{{ role_path }}/files/layer"
+    dest: "{{ output_dir }}/layer.zip"
