@@ -114,9 +114,6 @@ class EventsModule:
     def function_present(self):
         remote_rule = self.get_rule()
 
-        if remote_rule is None:
-            return self.put_rule()
-
         return self.put_rule(remote_rule)
 
     def function_absent(self):
