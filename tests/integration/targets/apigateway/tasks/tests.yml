@@ -1,0 +1,43 @@
+- name: Create for demo stage
+  include_tasks: create.yml
+  vars:
+    stage: demo
+    swagger: "{{ original_swagger }}"
+
+- name: Create for test stage
+  include_tasks: create.yml
+  vars:
+    stage: test
+    swagger: "{{ original_swagger }}"
+
+- name: Create for test stage with updated swagger
+  include_tasks: create.yml
+  vars:
+    stage: test
+    swagger: "{{ updated_swagger }}"
+
+- name: Delete the API Gateway deployment (check)
+  apigateway:
+    api_name: "{{ api_name }}"
+    state: absent
+  check_mode: yes
+  register: delete_check
+
+- name: Delete the API Gateway deployment (changed)
+  apigateway:
+    api_name: "{{ api_name }}"
+    state: absent
+  register: delete_changed
+
+- name: Delete the API Gateway deployment (unchanged)
+  apigateway:
+    api_name: "{{ api_name }}"
+    state: absent
+  register: delete_unchanged
+
+- name: Check results
+  assert:
+    that:
+      - delete_check is changed
+      - delete_changed is changed
+      - delete_unchanged is not changed

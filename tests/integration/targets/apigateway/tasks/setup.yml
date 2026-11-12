@@ -1,0 +1,2 @@
+- name: Get account facts
+  aws_account_facts:

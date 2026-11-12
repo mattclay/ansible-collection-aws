@@ -1,0 +1,40 @@
+- name: Create the API Gateway deployment for {{ stage }} stage (check)
+  apigateway:
+    stage_name: "{{ stage }}"
+    stage_description: "Test {{ stage }} stage description"
+    stage_variables:
+      a_var: a_value
+    deployment_description: "Test {{ stage }} deployment description"
+    mode: overwrite
+    swagger: "{{ swagger | to_nice_json }}"
+  check_mode: yes
+  register: create_check
+
+- name: Create the API Gateway deployment for {{ stage }} stage (changed)
+  apigateway:
+    stage_name: "{{ stage }}"
+    stage_description: "Test {{ stage }} stage description"
+    stage_variables:
+      a_var: a_value
+    deployment_description: "Test {{ stage }} deployment description"
+    mode: overwrite
+    swagger: "{{ swagger | to_nice_json }}"
+  register: create_changed
+
+- name: Create the API Gateway deployment for {{ stage }} stage (unchanged)
+  apigateway:
+    stage_name: "{{ stage }}"
+    stage_description: "Test {{ stage }} stage description"
+    stage_variables:
+      a_var: a_value
+    deployment_description: "Test {{ stage }} deployment description"
+    mode: overwrite
+    swagger: "{{ swagger | to_nice_json }}"
+  register: create_unchanged
+
+- name: Check results
+  assert:
+    that:
+      - create_check is changed
+      - create_changed is changed
+      - create_unchanged is not changed
