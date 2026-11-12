@@ -1,0 +1,2 @@
+- block:
+    - import_tasks: tests.yml
