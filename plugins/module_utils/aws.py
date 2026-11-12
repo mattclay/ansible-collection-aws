@@ -18,6 +18,8 @@ from ansible.module_utils.basic import AnsibleModule
 
 
 class AwsModule(AnsibleModule):
+    total_max_attempts = 3
+
     @functools.cached_property
     def client(self) -> AwsClient:
         return AwsClient(self)
@@ -46,7 +48,15 @@ class AwsClient:
         self._module = module
 
     def _client(self, service_name: str) -> t.Any:
-        return self._module.session.client(service_name)
+        import botocore.config
+
+        config = botocore.config.Config(
+            retries=dict(
+                total_max_attempts=self._module.total_max_attempts,
+            )
+        )
+
+        return self._module.session.client(service_name, config=config)
 
     @functools.cached_property
     def apigateway(self) -> APIGatewayClient:
