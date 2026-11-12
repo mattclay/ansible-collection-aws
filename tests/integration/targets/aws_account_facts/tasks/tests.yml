@@ -4,4 +4,4 @@
 - name: Check results
   assert:
     that:
-      - aws_account_id | int
+      - aws_account_id | int > 0
