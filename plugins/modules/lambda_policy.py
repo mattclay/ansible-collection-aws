@@ -128,7 +128,20 @@ class LambdaPolicyModule:
         return self.update_permission(remote_permission)
 
     def policy_absent(self):
-        raise Exception('FIXME: not implemented')
+        remote_permissions = self.get_permissions()
+        remote_permissions = [p for p in remote_permissions if
+                              p['Action'] == 'lambda:InvokeFunction' and
+                              p['Effect'] == 'Allow' and
+                              p['Principal']['Service'] == self.params['principal_service'] and
+                              p['Resource'] == self.params['function_arn'] and
+                              p['Condition']['ArnLike']['AWS:SourceArn'] == self.params['source_arn']]
+
+        remote_permission = remote_permissions[0] if remote_permissions else None
+
+        if remote_permission is None:
+            return False, {}
+
+        return self.remove_permission(remote_permission)
 
     def get_permissions(self):
         args = {}
@@ -164,6 +177,22 @@ class LambdaPolicyModule:
             response = self.al.add_permission(**args)
 
         return None, True, response
+
+    def remove_permission(self, remote_permission):
+        args = dict(
+            FunctionName=self.params['function_name'],
+            StatementId=remote_permission['Sid'],
+        )
+
+        if self.params['qualifier'] is not None:
+            args['Qualifier'] = self.params['qualifier']
+
+        if self.check_mode:
+            response = camel_dict_to_snake_dict(args)
+        else:
+            response = self.al.remove_permission(**args)
+
+        return True, response
 
     def update_permission(self, remote_permission):
         return None, False, remote_permission
