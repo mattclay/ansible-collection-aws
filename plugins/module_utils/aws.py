@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import typing as t
 
-if t.TYPE_CHECKING:
+if t.TYPE_CHECKING:  # pragma: nocover
     import boto3 as t_boto3
 
     from types_boto3_apigateway import APIGatewayClient
