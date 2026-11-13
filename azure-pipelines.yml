@@ -22,13 +22,13 @@ jobs:
         devel:
           ansibleBranch: devel
           pythonVersion: 3.15
-        2.22:
+        stable-2.22:
           ansibleBranch: stable-2.22
           pythonVersion: 3.15
-        2.21:
+        stable-2.21:
           ansibleBranch: stable-2.21
           pythonVersion: 3.14
-        2.20:
+        stable-2.20:
           ansibleBranch: stable-2.20
           pythonVersion: 3.14
     steps:
