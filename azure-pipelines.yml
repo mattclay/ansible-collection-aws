@@ -15,46 +15,73 @@ pr:
 pool:
   vmImage: ubuntu-26.04
 
-jobs:
-  - job: Test
-    strategy:
-      matrix:
-        devel:
-          ansibleBranch: devel
-          pythonVersion: 3.15
-        stable-2.22:
-          ansibleBranch: stable-2.22
-          pythonVersion: 3.15
-        stable-2.21:
-          ansibleBranch: stable-2.21
-          pythonVersion: 3.14
-        stable-2.20:
-          ansibleBranch: stable-2.20
-          pythonVersion: 3.14
-    steps:
-      - task: UsePythonVersion@0
-        inputs:
-          versionSpec: $(pythonVersion)
-        displayName: Install Python
+stages:
+  - stage: Check
+    dependsOn: []
+    jobs:
+      - job: Lint
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: 3.15
+            displayName: Install Python
 
-      - checkout: self
-        path: ansible_collections/mattclay/aws
-        displayName: Checkout Code
+          - checkout: self
+            path: ansible_collections/mattclay/aws
+            displayName: Checkout Code
 
-      - bash: pip install https://github.com/ansible/ansible/archive/$(ansibleBranch).tar.gz --disable-pip-version-check
-        displayName: Install Ansible Core
+          - bash: pip install -r tests/requirements.txt --disable-pip-version-check
+            displayName: Install Test Requirements (pip)
 
-      - bash: pip install -r tests/requirements.txt --disable-pip-version-check
-        displayName: Install Test Requirements (pip)
+          - bash: ruff check
+            displayName: Ruff Check
 
-      - bash: ansible-galaxy collection install -r tests/requirements.yml -p ../../../ansible_collections
-        displayName: Install Test Requirements (galaxy)
+          - bash: ruff format --check
+            displayName: Ruff Format Check
 
-      - bash: ansible-test sanity --docker -v --color
-        displayName: Run Sanity Tests
+  - stage: Ansible
+    dependsOn:
+      - Check
+    jobs:
+      - job: Test
+        strategy:
+          matrix:
+            devel:
+              ansibleBranch: devel
+              pythonVersion: 3.15
+            stable-2.22:
+              ansibleBranch: stable-2.22
+              pythonVersion: 3.15
+            stable-2.21:
+              ansibleBranch: stable-2.21
+              pythonVersion: 3.14
+            stable-2.20:
+              ansibleBranch: stable-2.20
+              pythonVersion: 3.14
+        steps:
+          - task: UsePythonVersion@0
+            inputs:
+              versionSpec: $(pythonVersion)
+            displayName: Install Python
 
-      - bash: ansible-test integration --docker -v --color
-        displayName: Run Integration Tests
+          - checkout: self
+            path: ansible_collections/mattclay/aws
+            displayName: Checkout Code
 
-      - bash: ansible-galaxy collection build
-        displayName: Run Galaxy Build
+          - bash: pip install https://github.com/ansible/ansible/archive/$(ansibleBranch).tar.gz --disable-pip-version-check
+            displayName: Install Ansible Core
+
+          - bash: pip install -r tests/requirements.txt --disable-pip-version-check
+            displayName: Install Test Requirements (pip)
+
+          - bash: ansible-galaxy collection install -r tests/requirements.yml -p ../../../ansible_collections
+            displayName: Install Test Requirements (galaxy)
+
+          - bash: ansible-test sanity --docker -v --color
+            displayName: Run Sanity Tests
+
+          - bash: ansible-test integration --docker -v --color
+            displayName: Run Integration Tests
+
+          - bash: ansible-galaxy collection build
+            displayName: Run Galaxy Build
