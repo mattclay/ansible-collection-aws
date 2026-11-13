@@ -1,9 +1,7 @@
-#!/usr/bin/python
 # Copyright (C) 2019 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import annotations
-
 
 DOCUMENTATION = '''
 ---
@@ -62,12 +60,12 @@ lambda_layer:
 '''
 
 import base64
-import hashlib
 import datetime
-
-from ..module_utils.aws import AwsModule
+import hashlib
 
 from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
+
+from ..module_utils.aws import AwsModule
 
 
 def main():
@@ -85,7 +83,7 @@ def main():
         supports_check_mode=True,
         required_if=[
             ['state', 'present', ['path']],
-        ]
+        ],
     )
 
     impl = LambdaLayerModule(module, module.check_mode, module.params)
@@ -203,9 +201,9 @@ class LambdaLayerModule:
 
             layer = camel_dict_to_snake_dict(layer_version)
 
-            result.update(dict(
+            result.update(
                 layer=layer,
-            ))
+            )
 
         return result
 
@@ -285,9 +283,9 @@ class LambdaClient:
             )
 
             if marker:
-                request.update(dict(
+                request.update(
                     Marker=marker,
-                ))
+                )
 
             response = self.client.list_layer_versions(**request)
 

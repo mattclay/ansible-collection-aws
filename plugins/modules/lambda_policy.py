@@ -1,9 +1,7 @@
-#!/usr/bin/python
 # Copyright (C) 2016 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import annotations
-
 
 DOCUMENTATION = '''
 ---
@@ -59,9 +57,9 @@ lambda_policy:
 import json
 import uuid
 
-from ..module_utils.aws import AwsModule
-
 from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
+
+from ..module_utils.aws import AwsModule
 
 
 def main():
@@ -126,12 +124,15 @@ class LambdaPolicyModule:
 
     def get_remote_permission(self):
         remote_permissions = self.get_permissions()
-        remote_permissions = [p for p in remote_permissions if
-                              p['Action'] == 'lambda:InvokeFunction' and
-                              p['Effect'] == 'Allow' and
-                              p['Principal']['Service'] == self.params['principal_service'] and
-                              p['Resource'] == self.params['function_arn'] and
-                              p['Condition']['ArnLike']['AWS:SourceArn'] == self.params['source_arn']]
+        remote_permissions = [
+            p
+            for p in remote_permissions
+            if p['Action'] == 'lambda:InvokeFunction'
+            and p['Effect'] == 'Allow'
+            and p['Principal']['Service'] == self.params['principal_service']
+            and p['Resource'] == self.params['function_arn']
+            and p['Condition']['ArnLike']['AWS:SourceArn'] == self.params['source_arn']
+        ]
 
         remote_permission = remote_permissions[0] if remote_permissions else None
 
@@ -146,7 +147,7 @@ class LambdaPolicyModule:
         try:
             result = self.al.get_policy(
                 FunctionName=self.params['function_name'],
-                **args
+                **args,
             )
             policy = json.loads(result['Policy'])
             return policy['Statement']

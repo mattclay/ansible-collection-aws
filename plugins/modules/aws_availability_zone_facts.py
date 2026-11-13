@@ -1,9 +1,7 @@
-#!/usr/bin/python
 # Copyright (C) 2016 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import annotations
-
 
 DOCUMENTATION = '''
 ---
@@ -21,9 +19,9 @@ EXAMPLES = '''
 aws_availability_zone_facts:
 '''
 
-from ..module_utils.aws import AwsModule
-
 from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
+
+from ..module_utils.aws import AwsModule
 
 
 def main():

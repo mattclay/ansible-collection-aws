@@ -1,9 +1,7 @@
-#!/usr/bin/python
 # Copyright (C) 2021 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import annotations
-
 
 DOCUMENTATION = '''
 ---
@@ -65,9 +63,7 @@ def main():
         argument_spec=argument_spec,
         supports_check_mode=True,
         required_if=[
-            ['state', 'present', [
-                'function_arn',
-            ]],
+            ['state', 'present', ['function_arn']],
         ],
     )
 

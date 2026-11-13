@@ -1,9 +1,7 @@
-#!/usr/bin/python
 # Copyright (C) 2016 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import annotations
-
 
 DOCUMENTATION = '''
 ---
@@ -168,8 +166,8 @@ import base64
 import hashlib
 import io
 import os
-import zipfile
 import time
+import zipfile
 
 from ..module_utils.aws import AwsModule
 
@@ -266,7 +264,7 @@ class LambdaModule:
         try:
             result = self.al.get_function_configuration(
                 FunctionName=self.params['function_name'],
-                **args
+                **args,
             )
         except self.al.exceptions.ResourceNotFoundException:
             return None
@@ -491,10 +489,10 @@ class LambdaModule:
         }
 
         if self.params['log_format'] == 'JSON':
-            args['LoggingConfig'].update({
-                'ApplicationLogLevel': self.params['application_log_level'].upper(),
-                'SystemLogLevel': self.params['system_log_level'].upper(),
-            })
+            args['LoggingConfig'].update(
+                ApplicationLogLevel=self.params['application_log_level'].upper(),
+                SystemLogLevel=self.params['system_log_level'].upper(),
+            )
 
         if self.params['environment']:
             args['Environment'] = {

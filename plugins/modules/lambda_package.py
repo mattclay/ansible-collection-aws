@@ -1,9 +1,7 @@
-#!/usr/bin/python
 # Copyright (C) 2019 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import annotations
-
 
 DOCUMENTATION = '''
 ---
@@ -49,10 +47,10 @@ lambda_package:
         - "my_lambda_functions/data/*.json"
 '''
 
+import fnmatch
 import io
 import os
 import zipfile
-import fnmatch
 
 from ansible.module_utils.basic import AnsibleModule
 
@@ -104,7 +102,7 @@ class LambdaPackageModule:
             changed=changed,
             package=dict(
                 size=len(new_package),
-            )
+            ),
         )
 
         return result

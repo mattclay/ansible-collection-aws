@@ -1,9 +1,7 @@
-#!/usr/bin/python
 # Copyright (C) 2016 Matt Clay <matt@mystile.com>
 # GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import annotations
-
 
 DOCUMENTATION = '''
 ---
@@ -56,9 +54,9 @@ lambda_alias:
     version: 3
 '''
 
-from ..module_utils.aws import AwsModule
-
 from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
+
+from ..module_utils.aws import AwsModule
 
 
 def main():
@@ -74,8 +72,8 @@ def main():
         argument_spec=argument_spec,
         supports_check_mode=True,
         required_if=[
-            ["state", "present", ["version"]]
-        ]
+            ["state", "present", ["version"]],
+        ],
     )
 
     lm = LambdaAliasModule(module, module.check_mode, module.params)
@@ -144,7 +142,7 @@ class LambdaAliasModule:
 
         args = dict(
             FunctionName=self.params['function_name'],
-            **local_alias
+            **local_alias,
         )
 
         if changed and not self.check_mode:
@@ -155,12 +153,11 @@ class LambdaAliasModule:
         else:
             account_id = self.module.account_id
 
-            arn = 'arn:aws:lambda:%s:%s:function:%s:%s' % (
-                self.region, account_id, self.params['function_name'], self.params['name'])
+            arn = 'arn:aws:lambda:%s:%s:function:%s:%s' % (self.region, account_id, self.params['function_name'], self.params['name'])
 
             data = dict(
                 FunctionArn=arn,
-                **args
+                **args,
             )
 
         result = camel_dict_to_snake_dict(data)
