@@ -5,7 +5,6 @@ import typing as t
 
 if t.TYPE_CHECKING:  # pragma: nocover
     import boto3 as t_boto3
-
     from types_boto3_apigateway import APIGatewayClient
     from types_boto3_ec2 import EC2Client
     from types_boto3_events import EventBridgeClient

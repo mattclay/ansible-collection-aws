@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-
 DOCUMENTATION = '''
 ---
 module: lambda_alias
@@ -56,9 +55,9 @@ lambda_alias:
     version: 3
 '''
 
-from ..module_utils.aws import AwsModule
-
 from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
+
+from ..module_utils.aws import AwsModule
 
 
 def main():

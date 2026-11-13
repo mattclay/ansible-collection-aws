@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-
 DOCUMENTATION = '''
 ---
 module: aws_availability_zone_facts
@@ -21,9 +20,9 @@ EXAMPLES = '''
 aws_availability_zone_facts:
 '''
 
-from ..module_utils.aws import AwsModule
-
 from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
+
+from ..module_utils.aws import AwsModule
 
 
 def main():

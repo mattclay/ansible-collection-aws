@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-
 DOCUMENTATION = '''
 ---
 module: lambda
@@ -168,8 +167,8 @@ import base64
 import hashlib
 import io
 import os
-import zipfile
 import time
+import zipfile
 
 from ..module_utils.aws import AwsModule
 

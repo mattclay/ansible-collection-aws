@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-
 DOCUMENTATION = '''
 ---
 module: lambda_layer
@@ -62,12 +61,12 @@ lambda_layer:
 '''
 
 import base64
-import hashlib
 import datetime
-
-from ..module_utils.aws import AwsModule
+import hashlib
 
 from ansible.module_utils.common.dict_transformations import camel_dict_to_snake_dict
+
+from ..module_utils.aws import AwsModule
 
 
 def main():

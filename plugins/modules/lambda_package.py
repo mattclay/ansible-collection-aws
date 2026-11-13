@@ -4,7 +4,6 @@
 
 from __future__ import annotations
 
-
 DOCUMENTATION = '''
 ---
 module: lambda_package
@@ -49,10 +48,10 @@ lambda_package:
         - "my_lambda_functions/data/*.json"
 '''
 
+import fnmatch
 import io
 import os
 import zipfile
-import fnmatch
 
 from ansible.module_utils.basic import AnsibleModule
 
