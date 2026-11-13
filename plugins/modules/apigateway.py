@@ -208,7 +208,7 @@ class ApiGatewayModule:
         elif len(apis) == 1:
             api_id = apis[0]['id']
         else:
-            self.module.fail_json(msg='api name "%s" is ambiguous' % api_name)
+            self.module.fail_json(msg=f'api name {api_name!r} is ambiguous')
 
         return api_id
 

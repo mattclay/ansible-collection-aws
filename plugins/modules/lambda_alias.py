@@ -153,7 +153,7 @@ class LambdaAliasModule:
         else:
             account_id = self.module.account_id
 
-            arn = 'arn:aws:lambda:%s:%s:function:%s:%s' % (self.region, account_id, self.params['function_name'], self.params['name'])
+            arn = f'arn:aws:lambda:{self.region}:{account_id}:function:{self.params["function_name"]}:{self.params["name"]}'
 
             data = dict(
                 FunctionArn=arn,

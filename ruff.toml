@@ -1,0 +1,15 @@
+line-length = 160
+
+[format]
+quote-style = "preserve"
+
+[lint]
+preview = true
+ignore = [
+    "unnecessary-collection-call",
+]
+
+[lint.pep8-naming]
+ignore-names = [
+    "lambda",
+]

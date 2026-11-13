@@ -141,8 +141,8 @@ class LambdaLayerModule:
                 account_id = self.module.account_id
                 version = 1
 
-            layer_arn = "arn:aws:lambda:%s:%s:layer:%s" % (self.lambda_client.region, account_id, self.name)
-            layer_version_arn = "%s:%d" % (layer_arn, version)
+            layer_arn = f"arn:aws:lambda:{self.lambda_client.region}:{account_id}:layer:{self.name}"
+            layer_version_arn = f"{layer_arn}:{version}"
 
             layer_version = dict(
                 Content=dict(
@@ -153,7 +153,7 @@ class LambdaLayerModule:
                 LayerArn=layer_arn,
                 LayerVersionArn=layer_version_arn,
                 Description=self.description,
-                CreatedDate=datetime.datetime.now(tz=datetime.timezone.utc).isoformat(),  # close, but not exact, AWS returns "2019-03-30T08:52:06.009+0000"
+                CreatedDate=datetime.datetime.now(tz=datetime.UTC).isoformat(),  # close, but not exact, AWS returns "2019-03-30T08:52:06.009+0000"
                 Version=version,
                 CompatibleRuntimes=self.compatible_runtimes,
                 LicenseInfo=self.license_info,
@@ -195,9 +195,8 @@ class LambdaLayerModule:
 
             content = layer_version.get('Content')
 
-            if content:
-                if 'Location' in content:
-                    del content['Location']
+            if content and 'Location' in content:
+                del content['Location']
 
             layer = camel_dict_to_snake_dict(layer_version)
 

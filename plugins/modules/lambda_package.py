@@ -115,13 +115,11 @@ class LambdaPackageModule:
                 src_path = os.path.join(root, filename)
                 dst_path = os.path.relpath(src_path, self.src)
 
-                if self.include:
-                    if not any(fnmatch.fnmatch(src_path, pattern) for pattern in self.include):
-                        continue
+                if self.include and not any(fnmatch.fnmatch(src_path, pattern) for pattern in self.include):
+                    continue
 
-                if self.exclude:
-                    if any(fnmatch.fnmatch(src_path, pattern) for pattern in self.exclude):
-                        continue
+                if self.exclude and any(fnmatch.fnmatch(src_path, pattern) for pattern in self.exclude):
+                    continue
 
                 dst_path = self.rename.get(dst_path, dst_path)
 

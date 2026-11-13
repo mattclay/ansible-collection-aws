@@ -94,10 +94,10 @@ class LambdaPolicyModule:
         region = self.module.region
         account_id = self.module.account_id
 
-        self.params['function_arn'] = 'arn:aws:lambda:%s:%s:function:%s' % (region, account_id, self.params['function_name'])
+        self.params['function_arn'] = f'arn:aws:lambda:{region}:{account_id}:function:{self.params["function_name"]}'
 
         if self.params['qualifier']:
-            self.params['function_arn'] += ':%s' % self.params['qualifier']
+            self.params['function_arn'] += f':{self.params["qualifier"]}'
 
         choice_map = dict(
             present=self.policy_present,
