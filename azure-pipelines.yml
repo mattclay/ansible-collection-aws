@@ -44,8 +44,11 @@ jobs:
       - bash: pip install https://github.com/ansible/ansible/archive/$(ansibleBranch).tar.gz --disable-pip-version-check
         displayName: Install Ansible Core
 
+      - bash: pip install -r tests/requirements.txt --disable-pip-version-check
+        displayName: Install Test Requirements (pip)
+
       - bash: ansible-galaxy collection install -r tests/requirements.yml -p ../../../ansible_collections
-        displayName: Install Test Requirements
+        displayName: Install Test Requirements (galaxy)
 
       - bash: ansible-test sanity --docker -v --color
         displayName: Run Sanity Tests
