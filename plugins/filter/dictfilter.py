@@ -5,7 +5,7 @@ from __future__ import annotations
 
 
 def dictfilter(item, keys):
-    return dict((k, item[k]) for k in item if k in keys)
+    return {k: v for k, v in item.items() if k in keys}
 
 
 class FilterModule:

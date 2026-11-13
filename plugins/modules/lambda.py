@@ -230,7 +230,7 @@ class LambdaModule:
         if not self.params['role'].startswith('arn:aws:iam:'):
             account_id = self.module.account_id
 
-            self.params['role'] = 'arn:aws:iam::%s:role/%s' % (account_id, self.params['role'])
+            self.params['role'] = f'arn:aws:iam::{account_id}:role/{self.params["role"]}'
 
         choice_map = dict(
             present=self.function_present,
@@ -344,7 +344,7 @@ class LambdaModule:
         if self.params['preserve_environment']:
             local_config['Environment'] = remote_function.get('Environment')
 
-        remote_config = dict((k, remote_function.get(k, None)) for k in local_config)
+        remote_config = {k: remote_function.get(k, None) for k in local_config}
 
         code_changed = local_hash != remote_hash
         config_changed = any(k for k in local_config if not self.are_equal(local_config[k], remote_config[k]))

@@ -94,7 +94,7 @@ class EventsModule:
         region = self.module.region
 
         if self.params['function_name'] and not self.params['function_name'].startswith('arn:aws:iam:'):
-            self.params['function_name'] = 'arn:aws:lambda:%s:%s:function:%s' % (region, account_id, self.params['function_name'])
+            self.params['function_name'] = f'arn:aws:lambda:{region}:{account_id}:function:{self.params["function_name"]}'
 
         choice_map = dict(
             enabled=self.function_present,
