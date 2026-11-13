@@ -24,12 +24,10 @@ options:
     function_name:
         description:
             - The Lambda function to invoke when the rule is triggered.
-        required: true
         type: str
     schedule_expression:
         description:
             - The schedule to use for the rule.
-        required: true
         type: str
     description:
         description:

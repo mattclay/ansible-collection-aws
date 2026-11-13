@@ -33,7 +33,6 @@ options:
     version:
         description:
             - The version of the lambda function to alias.
-        required: true
         type: str
     name:
         description:

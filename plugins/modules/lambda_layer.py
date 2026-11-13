@@ -33,7 +33,6 @@ options:
     path:
         description:
             - The local path to the contents of the layer.
-        required: true
         type: path
     license_info:
         description:

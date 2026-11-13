@@ -28,7 +28,6 @@ options:
     swagger:
         description:
             - The Swagger Specification to deploy in JSON format.
-        required: true
         type: str
     api_name:
         description:
@@ -39,7 +38,6 @@ options:
     stage_name:
         description:
             - The stage name used for deployment.
-        required: true
         type: str
     stage_description:
         description:
