@@ -18,10 +18,15 @@
 - name: Gather account facts
   aws_account_facts:
 
+- name: Create a Lambda package
+  lambda_package:
+    src: "{{ role_path }}/files/lambda"
+    dest: "{{ output_dir }}/lambda.zip"
+
 - name: Create a Lambda function
   lambda:
     name: "{{ function_name }}"
-    code: "# no actual code"
+    local_path: "{{ output_dir }}/lambda.zip"
     runtime: python3.8
     timeout: 60
     handler: lambda_function.lambda_handler
