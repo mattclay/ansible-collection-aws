@@ -24,17 +24,14 @@ options:
     runtime:
         description:
             - The runtime used to execute the Lambda function.
-        required: true
         type: str
     role:
         description:
             - The role used to execute the Lambda function.
-        required: true
         type: str
     handler:
         description:
             - The name of the handler (entry point) for the Lambda function.
-        required: true
         type: str
     code:
         description:
@@ -82,6 +79,7 @@ options:
     qualifier:
         description:
             - The alias to use when publishing the Lambda function.
+            - The version of a Lambda function to remove (or all versions if not specified).
         type: str
     state:
         description:
@@ -175,9 +173,9 @@ from ..module_utils.aws import AwsModule
 def main():
     argument_spec = dict(
         function_name=dict(required=True, type='str', aliases=['name']),
-        runtime=dict(required=True, type='str'),
-        role=dict(required=True, type='str'),
-        handler=dict(required=True, type='str'),
+        runtime=dict(required=False, type='str'),
+        role=dict(required=False, type='str'),
+        handler=dict(required=False, type='str'),
         code=dict(required=False, default=None, type='str'),
         local_path=dict(required=False, default=None, type='str'),
         s3_bucket=dict(required=False, default=None, type='str'),
@@ -209,6 +207,9 @@ def main():
         required_together=[
             ['s3_bucket', 's3_key', 's3_object_version'],
         ],
+        required_if=[
+            ["state", "present", ["handler", "role", "runtime"]],
+        ],
     )
 
     lm = LambdaModule(module, module.check_mode, module.params)
@@ -227,7 +228,7 @@ class LambdaModule:
         self.al = module.client.awslambda
 
     def run(self):
-        if not self.params['role'].startswith('arn:aws:iam:'):
+        if self.params['role'] and not self.params['role'].startswith('arn:aws:iam:'):
             account_id = self.module.account_id
 
             self.params['role'] = f'arn:aws:iam::{account_id}:role/{self.params["role"]}'
@@ -253,7 +254,23 @@ class LambdaModule:
         return self.update_function(remote_function)
 
     def function_absent(self):
-        raise Exception('FIXME: not implemented')
+        qualifier = self.params['qualifier']
+        remote_function = self.get_function(qualifier)
+
+        if not remote_function:
+            return False, {}
+
+        args = dict(
+            FunctionName=self.params['function_name'],
+        )
+
+        if qualifier is not None:
+            args.update(Qualifier=qualifier)
+
+        if not self.check_mode:
+            self.al.delete_function(**args)
+
+        return True, args
 
     def get_function(self, qualifier):
         args = {}

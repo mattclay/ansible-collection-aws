@@ -130,6 +130,47 @@
     system_log_level: warn
   register: logging_unchanged
 
+- name: Delete a Lambda function version (check)
+  lambda:
+    name: "{{ function_name }}"
+    qualifier: "{{ create_changed.meta.version }}"
+    state: absent
+  check_mode: yes
+  register: delete_version_check
+
+- name: Delete a Lambda function version (changed)
+  lambda:
+    name: "{{ function_name }}"
+    qualifier: "{{ create_changed.meta.version }}"
+    state: absent
+  register: delete_version_changed
+
+- name: Delete a Lambda function version (unchanged)
+  lambda:
+    name: "{{ function_name }}"
+    qualifier: "{{ create_changed.meta.version }}"
+    state: absent
+  register: delete_version_unchanged
+
+- name: Delete a Lambda function (check)
+  lambda:
+    name: "{{ function_name }}"
+    state: absent
+  check_mode: yes
+  register: delete_check
+
+- name: Delete a Lambda function (changed)
+  lambda:
+    name: "{{ function_name }}"
+    state: absent
+  register: delete_changed
+
+- name: Delete a Lambda function (unchanged)
+  lambda:
+    name: "{{ function_name }}"
+    state: absent
+  register: delete_unchanged
+
 - name: Check results
   assert:
     that:
@@ -166,3 +207,9 @@
       - logging_unchanged.meta.application_log_level == 'debug'
       - logging_unchanged.meta.system_log_level == 'warn'
       - logging_unchanged.meta.log_group == ("/aws/lambda/" + function_name + "-custom")
+      - delete_version_check is changed
+      - delete_version_changed is changed
+      - delete_version_unchanged is not changed
+      - delete_check is changed
+      - delete_changed is changed
+      - delete_unchanged is not changed
