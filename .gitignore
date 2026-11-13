@@ -1,2 +1,3 @@
 /tests/output/
+/tests/integration/cloud-config-aws-*
 /mattclay-aws-*.tar.gz
