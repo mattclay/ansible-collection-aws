@@ -85,7 +85,7 @@ def main():
         supports_check_mode=True,
         required_if=[
             ['state', 'present', ['path']],
-        ]
+        ],
     )
 
     impl = LambdaLayerModule(module, module.check_mode, module.params)
@@ -203,9 +203,9 @@ class LambdaLayerModule:
 
             layer = camel_dict_to_snake_dict(layer_version)
 
-            result.update(dict(
+            result.update(
                 layer=layer,
-            ))
+            )
 
         return result
 
@@ -285,9 +285,9 @@ class LambdaClient:
             )
 
             if marker:
-                request.update(dict(
+                request.update(
                     Marker=marker,
-                ))
+                )
 
             response = self.client.list_layer_versions(**request)
 

@@ -104,7 +104,7 @@ class LambdaPackageModule:
             changed=changed,
             package=dict(
                 size=len(new_package),
-            )
+            ),
         )
 
         return result

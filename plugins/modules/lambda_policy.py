@@ -126,12 +126,15 @@ class LambdaPolicyModule:
 
     def get_remote_permission(self):
         remote_permissions = self.get_permissions()
-        remote_permissions = [p for p in remote_permissions if
-                              p['Action'] == 'lambda:InvokeFunction' and
-                              p['Effect'] == 'Allow' and
-                              p['Principal']['Service'] == self.params['principal_service'] and
-                              p['Resource'] == self.params['function_arn'] and
-                              p['Condition']['ArnLike']['AWS:SourceArn'] == self.params['source_arn']]
+        remote_permissions = [
+            p
+            for p in remote_permissions
+            if p['Action'] == 'lambda:InvokeFunction'
+            and p['Effect'] == 'Allow'
+            and p['Principal']['Service'] == self.params['principal_service']
+            and p['Resource'] == self.params['function_arn']
+            and p['Condition']['ArnLike']['AWS:SourceArn'] == self.params['source_arn']
+        ]
 
         remote_permission = remote_permissions[0] if remote_permissions else None
 
@@ -146,7 +149,7 @@ class LambdaPolicyModule:
         try:
             result = self.al.get_policy(
                 FunctionName=self.params['function_name'],
-                **args
+                **args,
             )
             policy = json.loads(result['Policy'])
             return policy['Statement']

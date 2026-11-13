@@ -74,7 +74,7 @@ def main():
         supports_check_mode=True,
         required_if=[
             ['state', 'present', ['function_name', 'schedule_expression']],
-        ]
+        ],
     )
 
     em = EventsModule(module, module.check_mode, module.params)

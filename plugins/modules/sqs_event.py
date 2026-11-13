@@ -65,9 +65,7 @@ def main():
         argument_spec=argument_spec,
         supports_check_mode=True,
         required_if=[
-            ['state', 'present', [
-                'function_arn',
-            ]],
+            ['state', 'present', ['function_arn']],
         ],
     )
 

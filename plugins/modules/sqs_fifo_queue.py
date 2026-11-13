@@ -62,10 +62,7 @@ def main():
         argument_spec=argument_spec,
         supports_check_mode=True,
         required_if=[
-            ['state', 'present', [
-                'message_retention_period',
-                'visibility_timeout',
-            ]],
+            ['state', 'present', ['message_retention_period', 'visibility_timeout']],
         ],
     )
 

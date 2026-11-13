@@ -266,7 +266,7 @@ class LambdaModule:
         try:
             result = self.al.get_function_configuration(
                 FunctionName=self.params['function_name'],
-                **args
+                **args,
             )
         except self.al.exceptions.ResourceNotFoundException:
             return None
@@ -491,10 +491,10 @@ class LambdaModule:
         }
 
         if self.params['log_format'] == 'JSON':
-            args['LoggingConfig'].update({
-                'ApplicationLogLevel': self.params['application_log_level'].upper(),
-                'SystemLogLevel': self.params['system_log_level'].upper(),
-            })
+            args['LoggingConfig'].update(
+                ApplicationLogLevel=self.params['application_log_level'].upper(),
+                SystemLogLevel=self.params['system_log_level'].upper(),
+            )
 
         if self.params['environment']:
             args['Environment'] = {
