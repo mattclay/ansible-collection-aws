@@ -109,15 +109,7 @@ class LambdaPolicyModule:
         return choice_map.get(self.params['state'])()
 
     def policy_present(self):
-        remote_permissions = self.get_permissions()
-        remote_permissions = [p for p in remote_permissions if
-                              p['Action'] == 'lambda:InvokeFunction' and
-                              p['Effect'] == 'Allow' and
-                              p['Principal']['Service'] == self.params['principal_service'] and
-                              p['Resource'] == self.params['function_arn'] and
-                              p['Condition']['ArnLike']['AWS:SourceArn'] == self.params['source_arn']]
-
-        remote_permission = remote_permissions[0] if remote_permissions else None
+        remote_permission = self.get_remote_permission()
 
         if remote_permission is None:
             return self.create_permission()
@@ -125,6 +117,14 @@ class LambdaPolicyModule:
         return self.update_permission(remote_permission)
 
     def policy_absent(self):
+        remote_permission = self.get_remote_permission()
+
+        if remote_permission is None:
+            return False, {}
+
+        return self.remove_permission(remote_permission)
+
+    def get_remote_permission(self):
         remote_permissions = self.get_permissions()
         remote_permissions = [p for p in remote_permissions if
                               p['Action'] == 'lambda:InvokeFunction' and
@@ -135,10 +135,7 @@ class LambdaPolicyModule:
 
         remote_permission = remote_permissions[0] if remote_permissions else None
 
-        if remote_permission is None:
-            return False, {}
-
-        return self.remove_permission(remote_permission)
+        return remote_permission
 
     def get_permissions(self):
         args = {}
