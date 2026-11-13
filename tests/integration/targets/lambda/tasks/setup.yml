@@ -11,6 +11,14 @@
     managed_policies:
       - arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
 
+- name: Create Lambda code archives
+  lambda_package:
+    src: "{{ role_path }}/files/{{ item }}"
+    dest: "{{ output_dir }}/{{ item }}.zip"
+  loop:
+    - original
+    - updated
+
 - name: Wait for role to be usable
   pause:
     seconds: 10

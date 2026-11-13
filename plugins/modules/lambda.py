@@ -33,28 +33,9 @@ options:
         description:
             - The name of the handler (entry point) for the Lambda function.
         type: str
-    code:
-        description:
-            - Inline code of the Lambda function.
-            - Provide one of C(code), C(local_path) or C(s3_bucket).
-        type: str
     local_path:
         description:
-            - Path to a file containing the code of the Lambda function.
-            - Provide one of C(code), C(local_path) or C(s3_bucket).
-        type: str
-    s3_bucket:
-        description:
-            - The name of an S3 bucket which contains the code for the Lambda function.
-            - Provide one of C(code), C(local_path) or C(s3_bucket).
-        type: str
-    s3_key:
-        description:
-            - When using C(s3_bucket) this provides the key containing the code of the Lambda function.
-        type: str
-    s3_object_version:
-        description:
-            - When using C(s3_bucket) this provides the object version containing the code of the Lambda function.
+            - Path to a ZIP file containing the code of the Lambda function.
         type: str
     description:
         description:
@@ -162,10 +143,7 @@ lambda:
 
 import base64
 import hashlib
-import io
-import os
 import time
-import zipfile
 
 from ..module_utils.aws import AwsModule
 
@@ -176,11 +154,7 @@ def main():
         runtime=dict(required=False, type='str'),
         role=dict(required=False, type='str'),
         handler=dict(required=False, type='str'),
-        code=dict(required=False, default=None, type='str'),
         local_path=dict(required=False, default=None, type='str'),
-        s3_bucket=dict(required=False, default=None, type='str'),
-        s3_key=dict(required=False, default=None, type='str', no_log=False),
-        s3_object_version=dict(required=False, default=None, type='str'),
         description=dict(required=False, default='', type='str'),
         timeout=dict(required=False, default=3, type='int'),
         memory_size=dict(required=False, default=128, type='int'),
@@ -199,16 +173,8 @@ def main():
     module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
-        mutually_exclusive=[
-            ['code', 'local_path', 's3_bucket'],
-            ['code', 'local_path', 's3_key'],
-            ['code', 'local_path', 's3_object_version'],
-        ],
-        required_together=[
-            ['s3_bucket', 's3_key', 's3_object_version'],
-        ],
         required_if=[
-            ["state", "present", ["handler", "role", "runtime"]],
+            ["state", "present", ["local_path", "handler", "role", "runtime"]],
         ],
     )
 
@@ -224,7 +190,6 @@ class LambdaModule:
         self.module = module
         self.check_mode = check_mode
         self.params = params
-        self.package = None
         self.al = module.client.awslambda
 
     def run(self):
@@ -292,40 +257,12 @@ class LambdaModule:
         return result
 
     def get_package(self):
-        if self.package is not None:
-            return self.package
+        local_path = self.params['local_path']
 
-        if self.params['code'] is not None:
-            self.package = self.create_package(self.params['code'])
+        with open(local_path, 'rb') as f:
+            local_contents = f.read()
 
-        if self.params['local_path'] is not None:
-            local_path = self.params['local_path']
-            local_contents = ''
-
-            if not self.check_mode or os.path.exists(local_path):
-                with open(local_path, 'rb') as f:
-                    local_contents = f.read()
-
-            if os.path.splitext(local_path)[1] == '.zip':
-                return local_contents
-
-            self.package = self.create_package(local_contents)
-
-        return self.package
-
-    def create_package(self, code):
-        data = io.BytesIO()
-        zip_info = zipfile.ZipInfo(
-            'lambda_function.py',
-            (1980, 1, 1, 0, 0, 0),
-        )
-        zip_info.compress_type = zipfile.ZIP_DEFLATED
-        zip_info.external_attr = 0o777 << 16  # give full access to included file
-
-        with zipfile.ZipFile(data, 'w', zipfile.ZIP_DEFLATED) as f:
-            f.writestr(zip_info, code)
-
-        return data.getvalue()
+        return local_contents
 
     def create_function(self):
         args = self.make_function_configuration()
@@ -519,13 +456,6 @@ class LambdaModule:
         return args
 
     def make_function_code(self):
-        if self.params['s3_bucket'] is not None:
-            return {
-                'S3Bucket': self.params['s3_bucket'],
-                'S3Key': self.params['s3_key'],
-                'S3ObjectVersion': self.params['s3_object_version'],
-            }
-
         return {
             'ZipFile': self.get_package(),
         }
