@@ -32,9 +32,9 @@ options:
         type: str
     api_name:
         description:
-            - A unique name for the API Gateway deployment.
-            - If the name is not unique deployment will fail.
-            - If not specified, the C(info) C(title) from the Swagger Specification will be used.
+            - The name of the API Gateway deployment to remove.
+            - If the name is not unique the operation will fail.
+            - Used only with O(state=absent).
         type: str
     stage_name:
         description:
@@ -139,7 +139,6 @@ class ApiGatewayModule:
 
     def api_present(self):
         local_swagger = self.params['swagger']
-        api_name = self.params['api_name']
         stage_name = self.params['stage_name']
         stage_description = self.params['stage_description']
         deployment_description = self.params['deployment_description']
@@ -147,9 +146,7 @@ class ApiGatewayModule:
         fail_on_warnings = self.params['fail_on_warnings']
         stage_variables = self.params['stage_variables']
 
-        if api_name is None:
-            api_name = json.loads(local_swagger)['info']['title']
-
+        api_name = json.loads(local_swagger)['info']['title']
         api_id = self.get_api_id(api_name)
 
         changed = False
@@ -200,7 +197,6 @@ class ApiGatewayModule:
 
     def api_absent(self):
         api_name = self.params['api_name']
-
         api_id = self.get_api_id(api_name)
 
         if not api_id:
