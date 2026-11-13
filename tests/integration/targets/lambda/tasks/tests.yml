@@ -2,7 +2,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ original_zip }}"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128
@@ -16,7 +16,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ original_zip }}"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128
@@ -29,7 +29,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ original_zip }}"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128
@@ -42,7 +42,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ updated_zip }}"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128
@@ -56,7 +56,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ updated_zip }}"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128
@@ -69,7 +69,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ updated_zip }}"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128
@@ -82,7 +82,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ updated_zip }}"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128
@@ -100,7 +100,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ updated_zip }}"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128
@@ -117,7 +117,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ updated_zip }}"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128

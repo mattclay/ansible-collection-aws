@@ -27,7 +27,7 @@
   lambda:
     name: "{{ function_name }}"
     local_path: "{{ output_dir }}/lambda.zip"
-    runtime: python3.8
+    runtime: "{{ runtime }}"
     timeout: 60
     handler: lambda_function.lambda_handler
     memory_size: 128

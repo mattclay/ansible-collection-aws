@@ -4,3 +4,4 @@ iam_role_name: "{{ ('' if resource_prefix.startswith('ansible-test-') else 'ansi
 iam_role_arn: "arn:aws:iam::{{ aws_account_id }}:role/{{ iam_role_name }}"
 original_zip: "{{ output_dir }}/original.zip"
 updated_zip: "{{ output_dir }}/updated.zip"
+runtime: python3.15

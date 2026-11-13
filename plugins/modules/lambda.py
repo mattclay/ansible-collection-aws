@@ -130,7 +130,7 @@ lambda:
     region: us-east-1
     name: my_function
     local_path: my_function.zip
-    runtime: python3.7
+    runtime: python3.15
     timeout: 60
     handler: my_function.lambda_handler
     memory_size: 128
