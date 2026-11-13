@@ -80,12 +80,9 @@ def main():
 
     lm = LambdaPolicyModule(module, module.check_mode, module.params)
 
-    error, changed, result = lm.run()
+    changed, result = lm.run()
 
-    if error is None:
-        module.exit_json(changed=changed, meta=result)
-    else:
-        module.fail_json(msg=error, meta=result)
+    module.exit_json(changed=changed, meta=result)
 
 
 class LambdaPolicyModule:
@@ -112,6 +109,22 @@ class LambdaPolicyModule:
         return choice_map.get(self.params['state'])()
 
     def policy_present(self):
+        remote_permission = self.get_remote_permission()
+
+        if remote_permission is None:
+            return self.create_permission()
+
+        return self.update_permission(remote_permission)
+
+    def policy_absent(self):
+        remote_permission = self.get_remote_permission()
+
+        if remote_permission is None:
+            return False, {}
+
+        return self.remove_permission(remote_permission)
+
+    def get_remote_permission(self):
         remote_permissions = self.get_permissions()
         remote_permissions = [p for p in remote_permissions if
                               p['Action'] == 'lambda:InvokeFunction' and
@@ -122,13 +135,7 @@ class LambdaPolicyModule:
 
         remote_permission = remote_permissions[0] if remote_permissions else None
 
-        if remote_permission is None:
-            return self.create_permission()
-
-        return self.update_permission(remote_permission)
-
-    def policy_absent(self):
-        raise Exception('FIXME: not implemented')
+        return remote_permission
 
     def get_permissions(self):
         args = {}
@@ -163,10 +170,26 @@ class LambdaPolicyModule:
         else:
             response = self.al.add_permission(**args)
 
-        return None, True, response
+        return True, response
+
+    def remove_permission(self, remote_permission):
+        args = dict(
+            FunctionName=self.params['function_name'],
+            StatementId=remote_permission['Sid'],
+        )
+
+        if self.params['qualifier'] is not None:
+            args['Qualifier'] = self.params['qualifier']
+
+        if self.check_mode:
+            response = camel_dict_to_snake_dict(args)
+        else:
+            response = self.al.remove_permission(**args)
+
+        return True, response
 
     def update_permission(self, remote_permission):
-        return None, False, remote_permission
+        return False, remote_permission
 
 
 if __name__ == '__main__':

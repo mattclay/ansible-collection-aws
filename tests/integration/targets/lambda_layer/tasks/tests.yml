@@ -1,0 +1,59 @@
+- name: Create the Lambda layer (check)
+  lambda_layer:
+    name: "{{ resource_prefix }}-layer"
+    description: "Test layer"
+    path: "{{ output_dir }}/layer.zip"
+    compatible_runtimes:
+      - "python{{ (ansible_facts.python_version | split('.'))[:2] | join('.') }}"
+    license_info: GPL-3.0-only
+  check_mode: yes
+  register: create_check
+
+- name: Create the Lambda layer (changed)
+  lambda_layer:
+    name: "{{ resource_prefix }}-layer"
+    description: "Test layer"
+    path: "{{ output_dir }}/layer.zip"
+    compatible_runtimes:
+      - "python{{ (ansible_facts.python_version | split('.'))[:2] | join('.') }}"
+    license_info: GPL-3.0-only
+  register: create_changed
+
+- name: Create the Lambda layer (unchanged)
+  lambda_layer:
+    name: "{{ resource_prefix }}-layer"
+    description: "Test layer"
+    path: "{{ output_dir }}/layer.zip"
+    compatible_runtimes:
+      - "python{{ (ansible_facts.python_version | split('.'))[:2] | join('.') }}"
+    license_info: GPL-3.0-only
+  register: create_unchanged
+
+- name: Delete the Lambda layer (check)
+  lambda_layer:
+    name: "{{ resource_prefix }}-layer"
+    state: absent
+  check_mode: yes
+  register: delete_check
+
+- name: Delete the Lambda layer (changed)
+  lambda_layer:
+    name: "{{ resource_prefix }}-layer"
+    state: absent
+  register: delete_changed
+
+- name: Delete the Lambda layer (unchanged)
+  lambda_layer:
+    name: "{{ resource_prefix }}-layer"
+    state: absent
+  register: delete_unchanged
+
+- name: Check results
+  assert:
+    that:
+      - create_check is changed
+      - create_changed is changed
+      - create_unchanged is not changed
+      - delete_check is changed
+      - delete_changed is changed
+      - delete_unchanged is not changed

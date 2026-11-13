@@ -48,6 +48,28 @@
     version: "{{ lambda_function.meta.version }}"
   register: update_unchanged
 
+- name: Delete the Lambda function alias (check)
+  lambda_alias:
+    name: "test"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    state: absent
+  check_mode: yes
+  register: delete_check
+
+- name: Delete the Lambda function alias (changed)
+  lambda_alias:
+    name: "test"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    state: absent
+  register: delete_changed
+
+- name: Delete the Lambda function alias (unchanged)
+  lambda_alias:
+    name: "test"
+    function_name: "{{ lambda_function.meta.function_name }}"
+    state: absent
+  register: delete_unchanged
+
 - name: Check results
   assert:
     that:
@@ -57,3 +79,6 @@
       - update_check is changed
       - update_changed is changed
       - update_unchanged is not changed
+      - delete_check is changed
+      - delete_changed is changed
+      - delete_unchanged is not changed

@@ -1,0 +1,33 @@
+{
+    "swagger": "2.0",
+    "x-amazon-apigateway-security-policy": "TLS_1_0",
+    "info": {
+        "version": null,
+        "title": "{{ api_name }}"
+    },
+    "host": null,
+    "basePath": "/{{ stage }}",
+    "schemes": [
+        "https"
+    ],
+    "paths": {
+        "/demo": {
+            "get": {
+                "responses": {
+                },
+                "x-amazon-apigateway-integration": {
+                    "uri": "arn:aws:apigateway:{{ aws_region }}:lambda:path/2015-03-31/functions/arn:aws:lambda:{{ aws_region }}:{{ aws_account_id }}:function:demo:${stageVariables.stage}/invocations",
+                    "passthroughBehavior": "when_no_templates",
+                    "responseTransferMode": "BUFFERED",
+                    "responses": {
+                        "default": {
+                            "statusCode": "404"
+                        }
+                    },
+                    "httpMethod": "POST",
+                    "type": "aws_proxy"
+                }
+            }
+        }
+    }
+}

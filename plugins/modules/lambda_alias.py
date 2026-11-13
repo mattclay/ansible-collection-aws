@@ -33,7 +33,6 @@ options:
     version:
         description:
             - The version of the lambda function to alias.
-        required: true
         type: str
     name:
         description:
@@ -66,7 +65,7 @@ def main():
     argument_spec = dict(
         function_name=dict(required=True, type='str'),
         state=dict(required=False, default='present', type='str', choices=['present', 'absent']),
-        version=dict(required=True, type='str'),
+        version=dict(required=False, type='str'),
         name=dict(required=True, type='str'),
         description=dict(required=False, default='', type='str'),
     )
@@ -74,16 +73,16 @@ def main():
     module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
+        required_if=[
+            ["state", "present", ["version"]]
+        ]
     )
 
     lm = LambdaAliasModule(module, module.check_mode, module.params)
 
-    error, changed, result = lm.run()
+    changed, result = lm.run()
 
-    if error is None:
-        module.exit_json(changed=changed, meta=result)
-    else:
-        module.fail_json(msg=error, meta=result)
+    module.exit_json(changed=changed, meta=result)
 
 
 class LambdaAliasModule:
@@ -117,7 +116,19 @@ class LambdaAliasModule:
             return None
 
     def alias_absent(self):
-        raise Exception('FIXME: not implemented')
+        args = dict(
+            FunctionName=self.params['function_name'],
+            Name=self.params['name'],
+        )
+
+        changed = bool(self.get_alias())
+
+        if changed and not self.check_mode:
+            self.al.delete_alias(**args)
+
+        result = camel_dict_to_snake_dict(args)
+
+        return changed, result
 
     def create_or_update_alias(self, remote_alias):
         local_alias = dict(
@@ -154,7 +165,7 @@ class LambdaAliasModule:
 
         result = camel_dict_to_snake_dict(data)
 
-        return None, changed, result
+        return changed, result
 
 
 if __name__ == '__main__':

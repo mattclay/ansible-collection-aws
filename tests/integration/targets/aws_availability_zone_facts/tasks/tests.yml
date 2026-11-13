@@ -4,7 +4,7 @@
 - name: Check results
   assert:
     that:
-      - aws_availability_zones
-      - aws_availability_zones[0].region_name
-      - aws_availability_zones[0].zone_name
-      - aws_availability_zones[0].state
+      - aws_availability_zones | length > 0
+      - aws_availability_zones[0].region_name | length > 0
+      - aws_availability_zones[0].zone_name| length > 0
+      - aws_availability_zones[0].state | length > 0

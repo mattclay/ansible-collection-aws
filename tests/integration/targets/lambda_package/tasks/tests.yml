@@ -1,0 +1,94 @@
+- name: Create the Lambda package (check)
+  lambda_package:
+    src: "{{ role_path }}/files/create"
+    dest: "{{ output_dir }}/create.zip"
+    include:
+      - "{{ role_path }}/files/create/a/*"
+    exclude:
+      - "*/two.*"
+  check_mode: yes
+  register: create_check
+
+- name: Create the Lambda package (changed)
+  lambda_package:
+    src: "{{ role_path }}/files/create"
+    dest: "{{ output_dir }}/create.zip"
+    include:
+      - "{{ role_path }}/files/create/a/*"
+    exclude:
+      - "*/two.*"
+  register: create_changed
+
+- name: Create the Lambda package (unchanged)
+  lambda_package:
+    src: "{{ role_path }}/files/create"
+    dest: "{{ output_dir }}/create.zip"
+    include:
+      - "{{ role_path }}/files/create/a/*"
+    exclude:
+      - "*/two.*"
+  register: create_unchanged
+
+- name: List the Lambda package
+  list_zip:
+    file: "{{ output_dir }}/create.zip"
+  register: list
+
+- name: Create the Lambda package unfiltered (check)
+  lambda_package:
+    src: "{{ role_path }}/files/create"
+    dest: "{{ output_dir }}/create-unfiltered.zip"
+  check_mode: yes
+  register: create_unfiltered_check
+
+- name: Create the Lambda package unfiltered (changed)
+  lambda_package:
+    src: "{{ role_path }}/files/create"
+    dest: "{{ output_dir }}/create-unfiltered.zip"
+  register: create_unfiltered_changed
+
+- name: Create the Lambda package unfiltered (unchanged)
+  lambda_package:
+    src: "{{ role_path }}/files/create"
+    dest: "{{ output_dir }}/create-unfiltered.zip"
+  register: create_unfiltered_unchanged
+
+- name: List the Lambda package unfiltered
+  list_zip:
+    file: "{{ output_dir }}/create-unfiltered.zip"
+  register: list_unfiltered
+
+- name: Check results
+  assert:
+    that:
+      - create_check is changed
+      - create_changed is changed
+      - create_unchanged is not changed
+      - list.files == list_expected
+      - create_unfiltered_check is changed
+      - create_unfiltered_changed is changed
+      - create_unfiltered_unchanged is not changed
+      - list_unfiltered.files == list_unfiltered_expected
+  vars:
+    list_expected:
+      - filename: a/one.txt
+        file_size: 2
+        external_attr: "0o777"
+        date_time: "1980-01-01T00:00:00"
+    list_unfiltered_expected:
+      - filename: a/one.txt
+        file_size: 2
+        external_attr: "0o777"
+        date_time: "1980-01-01T00:00:00"
+      - filename: a/two.txt
+        file_size: 3
+        external_attr: "0o777"
+        date_time: "1980-01-01T00:00:00"
+      - filename: b/one.txt
+        file_size: 4
+        external_attr: "0o777"
+        date_time: "1980-01-01T00:00:00"
+      - filename: b/two.txt
+        file_size: 5
+        external_attr: "0o777"
+        date_time: "1980-01-01T00:00:00"

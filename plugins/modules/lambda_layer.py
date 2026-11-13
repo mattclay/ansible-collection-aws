@@ -33,7 +33,6 @@ options:
     path:
         description:
             - The local path to the contents of the layer.
-        required: true
         type: path
     license_info:
         description:
@@ -76,7 +75,7 @@ def main():
         name=dict(type='str', required=True),
         description=dict(type='str'),
         compatible_runtimes=dict(type='list', elements='str'),
-        path=dict(type='path', required=True),
+        path=dict(type='path'),
         license_info=dict(type='str'),
         state=dict(default='present', type='str', choices=['present', 'absent']),
     )
@@ -84,6 +83,9 @@ def main():
     module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
+        required_if=[
+            ['state', 'present', ['path']],
+        ]
     )
 
     impl = LambdaLayerModule(module, module.check_mode, module.params)

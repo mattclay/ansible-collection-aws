@@ -49,7 +49,6 @@ lambda_package:
         - "my_lambda_functions/data/*.json"
 '''
 
-import errno
 import io
 import os
 import zipfile
@@ -90,10 +89,7 @@ class LambdaPackageModule:
         try:
             with open(self.dest, 'rb') as f:
                 current_package = f.read()
-        except IOError as ex:
-            if ex.errno != errno.ENOENT:
-                raise
-
+        except FileNotFoundError:
             current_package = None
 
         new_package = self.create_package()

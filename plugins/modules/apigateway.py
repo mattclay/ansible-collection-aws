@@ -28,18 +28,16 @@ options:
     swagger:
         description:
             - The Swagger Specification to deploy in JSON format.
-        required: true
         type: str
     api_name:
         description:
-            - A unique name for the API Gateway deployment.
-            - If the name is not unique deployment will fail.
-            - If not specified, the C(info) C(title) from the Swagger Specification will be used.
+            - The name of the API Gateway deployment to remove.
+            - If the name is not unique the operation will fail.
+            - Used only with O(state=absent).
         type: str
     stage_name:
         description:
             - The stage name used for deployment.
-        required: true
         type: str
     stage_description:
         description:
@@ -91,9 +89,9 @@ from ..module_utils.aws import AwsModule
 def main():
     argument_spec = dict(
         state=dict(required=False, default='present', type='str', choices=['present', 'absent']),
-        swagger=dict(required=True, type='str'),
+        swagger=dict(required=False, type='str'),
         api_name=dict(required=False, default=None, type='str'),
-        stage_name=dict(required=True, type='str'),
+        stage_name=dict(required=False, type='str'),
         stage_description=dict(required=False, default='', type='str'),
         deployment_description=dict(required=False, default='', type='str'),
         mode=dict(required=False, default='merge', type='str', choices=['merge', 'overwrite']),
@@ -104,16 +102,19 @@ def main():
     module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
+        required_if=[
+            ['state', 'present', ['swagger', 'stage_name']],
+            ['state', 'absent', ['api_name']],
+        ],
     )
+
+    module.total_max_attempts = 20
 
     ag = ApiGatewayModule(module, module.check_mode, module.params)
 
-    error, changed, result = ag.run()
+    changed, result = ag.run()
 
-    if error is None:
-        module.exit_json(changed=changed, meta=result)
-    else:
-        module.fail_json(msg=error, meta=result)
+    module.exit_json(changed=changed, meta=result)
 
 
 class ApiGatewayModule:
@@ -133,7 +134,6 @@ class ApiGatewayModule:
 
     def api_present(self):
         local_swagger = self.params['swagger']
-        api_name = self.params['api_name']
         stage_name = self.params['stage_name']
         stage_description = self.params['stage_description']
         deployment_description = self.params['deployment_description']
@@ -141,17 +141,8 @@ class ApiGatewayModule:
         fail_on_warnings = self.params['fail_on_warnings']
         stage_variables = self.params['stage_variables']
 
-        if api_name is None:
-            api_name = json.loads(local_swagger)['info']['title']
-
-        apis = [api for api in self.ag.get_rest_apis()['items'] if api['name'] == api_name]
-
-        if not apis:
-            api_id = None
-        elif len(apis) == 1:
-            api_id = apis[0]['id']
-        else:
-            return 'api name "%s" is ambiguous' % api_name, None, None
+        api_name = json.loads(local_swagger)['info']['title']
+        api_id = self.get_api_id(api_name)
 
         changed = False
 
@@ -195,12 +186,33 @@ class ApiGatewayModule:
         )
 
         if changed:
-            return None, True, result
+            return True, result
 
-        return None, False, result
+        return False, result
 
     def api_absent(self):
-        raise Exception('FIXME: not implemented')
+        api_name = self.params['api_name']
+        api_id = self.get_api_id(api_name)
+
+        if not api_id:
+            return False, {}
+
+        if not self.check_mode:
+            self.ag.delete_rest_api(restApiId=api_id)
+
+        return True, dict(id=api_id)
+
+    def get_api_id(self, api_name):
+        apis = [api for api in self.ag.get_rest_apis()['items'] if api['name'] == api_name]
+
+        if not apis:
+            api_id = None
+        elif len(apis) == 1:
+            api_id = apis[0]['id']
+        else:
+            self.module.fail_json(msg='api name "%s" is ambiguous' % api_name)
+
+        return api_id
 
     def put_swagger(self, api_id, mode, fail_on_warnings, body):
         return self.ag.put_rest_api(

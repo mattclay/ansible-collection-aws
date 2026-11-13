@@ -24,12 +24,10 @@ options:
     function_name:
         description:
             - The Lambda function to invoke when the rule is triggered.
-        required: true
         type: str
     schedule_expression:
         description:
             - The schedule to use for the rule.
-        required: true
         type: str
     description:
         description:
@@ -65,8 +63,8 @@ from ..module_utils.aws import AwsModule
 def main():
     argument_spec = dict(
         rule_name=dict(required=True, type='str'),
-        function_name=dict(required=True, type='str'),
-        schedule_expression=dict(required=True, type='str'),
+        function_name=dict(required=False, type='str'),
+        schedule_expression=dict(required=False, type='str'),
         description=dict(required=False, default='', type='str'),
         state=dict(required=False, default='enabled', type='str', choices=['enabled', 'disabled', 'absent']),
     )
@@ -74,16 +72,16 @@ def main():
     module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
+        required_if=[
+            ['state', 'present', ['function_name', 'schedule_expression']],
+        ]
     )
 
     em = EventsModule(module, module.check_mode, module.params)
 
-    error, changed, result = em.run()
+    changed, result = em.run()
 
-    if error is None:
-        module.exit_json(changed=changed, meta=result)
-    else:
-        module.fail_json(msg=error, meta=result)
+    module.exit_json(changed=changed, meta=result)
 
 
 class EventsModule:
@@ -97,7 +95,7 @@ class EventsModule:
         account_id = self.module.account_id
         region = self.module.region
 
-        if not self.params['function_name'].startswith('arn:aws:iam:'):
+        if self.params['function_name'] and not self.params['function_name'].startswith('arn:aws:iam:'):
             self.params['function_name'] = 'arn:aws:lambda:%s:%s:function:%s' % (region, account_id, self.params['function_name'])
 
         choice_map = dict(
@@ -111,19 +109,36 @@ class EventsModule:
     def function_present(self):
         remote_rule = self.get_rule()
 
-        if remote_rule is None:
-            return self.put_rule()
-
         return self.put_rule(remote_rule)
 
     def function_absent(self):
-        raise Exception('FIXME: not implemented')
+        remote_rule = self.get_rule()
+
+        return self.delete_rule(remote_rule)
 
     def get_rule(self):
         try:
             return self.events.describe_rule(Name=self.params['rule_name'])
         except self.events.exceptions.ResourceNotFoundException:
             return None
+
+    def delete_rule(self, remote_rule):
+        if remote_rule:
+            if self.check_mode:
+                return True, remote_rule
+
+            targets = self.events.list_targets_by_rule(Rule=self.params['rule_name'])['Targets']
+
+            self.events.remove_targets(
+                Rule=self.params['rule_name'],
+                Ids=[target['Id'] for target in targets],
+            )
+
+            self.events.delete_rule(Name=self.params['rule_name'])
+
+            return True, remote_rule
+
+        return False, {}
 
     def put_rule(self, remote_rule=None):
         local_rule = dict(
@@ -176,9 +191,9 @@ class EventsModule:
             results.update(more)
 
         if rule_changed or target_changed:
-            return None, True, results
+            return True, results
 
-        return None, False, results
+        return False, results
 
 
 if __name__ == '__main__':
