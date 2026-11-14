@@ -22,6 +22,7 @@ options:
     function_arn:
         description:
             - The function ARN.
+        required: true
         type: str
     batch_size:
         description:
@@ -54,7 +55,7 @@ from ..module_utils.aws import AwsModule
 def main():
     argument_spec = dict(
         source_arn=dict(type='str', required=True),
-        function_arn=dict(type='str'),
+        function_arn=dict(type='str', required=True),
         batch_size=dict(type='int', default=1),
         state=dict(required=False, default='present', type='str', choices=['present', 'absent']),
     )
@@ -62,9 +63,6 @@ def main():
     module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
-        required_if=[
-            ['state', 'present', ['function_arn']],
-        ],
     )
 
     lambda_client = module.client.awslambda
@@ -73,30 +71,21 @@ def main():
     function_arn = module.params['function_arn']
     state = module.params['state']
 
-    common_attributes = dict(
+    attributes = dict(
         BatchSize=module.params['batch_size'],
     )
-
-    requested_attributes = dict(FunctionName=function_arn)
-    requested_attributes.update(**common_attributes)
-
-    expected_attributes = dict(FunctionArn=function_arn)
-    expected_attributes.update(**common_attributes)
 
     changed = False
 
     result = lambda_client.list_event_source_mappings(
         EventSourceArn=source_arn,
-        MaxItems=2,
+        FunctionName=function_arn,
     )
 
     mappings = result.get('EventSourceMappings', [])
 
     if mappings:
-        if len(mappings) > 1:
-            module.fail_json(msg='Source has multiple mappings. This module does not support multiple mappings.')
-
-        mapping = mappings[0]
+        mapping = mappings[0]  # there can only be one mapping per source+function combination
         mapping_uuid = mapping['UUID']
 
         if state == 'absent':
@@ -109,21 +98,17 @@ def main():
             if changed and not module.check_mode:
                 lambda_client.delete_event_source_mapping(UUID=mapping_uuid)
         else:
-            if not all(mapping[k] == v for k, v in expected_attributes.items()):
+            if not all(mapping[k] == v for k, v in attributes.items()):
                 changed = True
 
                 if not module.check_mode:
-                    kwargs = dict(UUID=mapping_uuid)
-                    kwargs.update(**requested_attributes)
                     wait_until_ready(lambda_client, mapping)
-                    lambda_client.update_event_source_mapping(**kwargs)
+                    lambda_client.update_event_source_mapping(UUID=mapping_uuid, **attributes)
     elif state == 'present':
         changed = True
 
         if not module.check_mode:
-            kwargs = dict(EventSourceArn=source_arn)
-            kwargs.update(**requested_attributes)
-            lambda_client.create_event_source_mapping(**kwargs)
+            lambda_client.create_event_source_mapping(EventSourceArn=source_arn, FunctionName=function_arn, **attributes)
 
     module.exit_json(changed=changed)
 
