@@ -1,3 +1,4 @@
 api_name: "{{ resource_prefix }}-api"
 original_swagger: "{{ lookup('template', 'original.json') | from_json }}"
 updated_swagger: "{{ lookup('template', 'updated.json') | from_json }}"
+conflicting_api_name: "{{ resource_prefix }}-conflict"

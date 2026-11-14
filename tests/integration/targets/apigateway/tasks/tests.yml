@@ -1,3 +1,14 @@
+- name: Attempt to create an API when a naming conflict exists
+  apigateway:
+    stage_name: "{{ stage }}"
+    swagger: "{{ swagger | to_nice_json }}"
+  ignore_errors: yes
+  register: create_conflict
+  vars:
+    api_name: "{{ conflicting_api_name }}"
+    stage: demo
+    swagger: "{{ original_swagger }}"
+
 - name: Create for demo stage
   include_tasks: create.yml
   vars:
@@ -38,6 +49,10 @@
 - name: Check results
   assert:
     that:
+      - create_conflict is failed
+      - create_conflict.msg == expected_conflict_message
       - delete_check is changed
       - delete_changed is changed
       - delete_unchanged is not changed
+  vars:
+    expected_conflict_message: api name '{{ conflicting_api_name }}' is ambiguous
