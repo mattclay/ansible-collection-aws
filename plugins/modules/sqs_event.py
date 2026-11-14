@@ -89,40 +89,42 @@ def main():
         mapping_uuid = mapping['UUID']
 
         if state == 'absent':
-            try:
-                wait_until_ready(lambda_client, mapping)
-                changed = True
-            except lambda_client.exceptions.ResourceNotFoundException:
-                changed = False
+            changed = True
 
-            if changed and not module.check_mode:
+            if not module.check_mode:
                 lambda_client.delete_event_source_mapping(UUID=mapping_uuid)
+
+                try:
+                    wait_until_ready(lambda_client, mapping)
+                except lambda_client.exceptions.ResourceNotFoundException:
+                    pass
         else:
             if not all(mapping[k] == v for k, v in attributes.items()):
                 changed = True
 
                 if not module.check_mode:
-                    wait_until_ready(lambda_client, mapping)
                     lambda_client.update_event_source_mapping(UUID=mapping_uuid, **attributes)
+                    wait_until_ready(lambda_client, mapping)
     elif state == 'present':
         changed = True
 
         if not module.check_mode:
-            lambda_client.create_event_source_mapping(EventSourceArn=source_arn, FunctionName=function_arn, **attributes)
+            mapping = lambda_client.create_event_source_mapping(EventSourceArn=source_arn, FunctionName=function_arn, **attributes)
+            wait_until_ready(lambda_client, mapping)
 
     module.exit_json(changed=changed)
 
 
 def wait_until_ready(lamda_client, mapping):
-    for attempt in range(10):
+    while True:
+        mapping = lamda_client.get_event_source_mapping(UUID=mapping['UUID'])
+
         state = mapping['State']
 
         if state in ('Enabled', 'Disabled'):
             return
 
         time.sleep(10)
-
-        mapping = lamda_client.get_event_source_mapping(UUID=mapping['UUID'])
 
 
 if __name__ == '__main__':
