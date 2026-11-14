@@ -5,13 +5,13 @@ import typing as t
 
 if t.TYPE_CHECKING:  # pragma: nocover
     import boto3 as t_boto3
+
     from types_boto3_apigateway import APIGatewayClient
     from types_boto3_ec2 import EC2Client
     from types_boto3_events import EventBridgeClient
     from types_boto3_lambda import LambdaClient
     from types_boto3_sqs.service_resource import SQSServiceResource
     from types_boto3_sts import STSClient
-
 
 from ansible.module_utils.basic import AnsibleModule
 

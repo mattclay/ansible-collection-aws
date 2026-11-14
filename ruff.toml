@@ -8,6 +8,7 @@ preview = true
 ignore = [
     "unnecessary-collection-call",
 ]
+isort = { lines-between-types = 1 }
 
 [lint.pep8-naming]
 ignore-names = [
