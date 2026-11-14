@@ -42,6 +42,7 @@
 - name: Delete an event mapping (check)
   sqs_event:
     source_arn: "{{ queue_arn }}"
+    function_arn: "{{ function_arn }}"
     state: absent
   check_mode: yes
   register: delete_check
@@ -49,12 +50,14 @@
 - name: Delete an event mapping (changed)
   sqs_event:
     source_arn: "{{ queue_arn }}"
+    function_arn: "{{ function_arn }}"
     state: absent
   register: delete_changed
 
 - name: Delete an event mapping (unchanged)
   sqs_event:
     source_arn: "{{ queue_arn }}"
+    function_arn: "{{ function_arn }}"
     state: absent
   register: delete_unchanged
 
