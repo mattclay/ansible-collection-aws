@@ -1,2 +1,10 @@
 - name: Get account facts
   aws_account_facts:
+
+- name: Create an API Gateway deployment for testing (first)
+  create_rest_api:
+    name: "{{ conflicting_api_name }}"
+
+- name: Create an API Gateway deployment for testing (second)
+  create_rest_api:
+    name: "{{ conflicting_api_name }}"
