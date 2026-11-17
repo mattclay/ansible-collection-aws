@@ -87,7 +87,7 @@ def main():
         argument_spec=argument_spec,
         supports_check_mode=True,
         required_if=[
-            ['state', 'present', ['path']],
+            ['state', 'present', ['description', 'compatible_runtimes', 'path', 'license_info']],
         ],
     )
 
