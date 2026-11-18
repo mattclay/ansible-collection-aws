@@ -277,7 +277,7 @@ class LambdaModule:
             result = self.make_result(api)
         else:
             result = self.make_result(args)
-            result['version'] = 1
+            result['version'] = "1"
 
         return True, result
 
@@ -322,6 +322,11 @@ class LambdaModule:
         data.update(config)
         data.update(code)
 
+        changed = code_changed or config_changed
+
+        if changed and self.check_mode:
+            data.update(Version='$LATEST')  # cannot predict next version
+
         if 'Layers' not in config:
             data.pop('Layers', None)
 
@@ -330,10 +335,7 @@ class LambdaModule:
 
         result = self.make_result(data)
 
-        if code_changed or config_changed:
-            return True, result
-
-        return False, result
+        return changed, result
 
     def update_function_configuration(self, args, changed):
         if changed and not self.check_mode:
