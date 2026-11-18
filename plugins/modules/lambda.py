@@ -270,9 +270,6 @@ class LambdaModule:
         args['Publish'] = self.params['publish']
 
         if not self.check_mode:
-            if not args['Environment']:
-                del args['Environment']
-
             api = self.al.create_function(**args)
 
             self.wait_on_create()
@@ -299,6 +296,11 @@ class LambdaModule:
 
         if not remote_config.get('Layers'):
             remote_config['Layers'] = []
+
+        if not remote_config.get('Environment'):
+            remote_config['Environment'] = dict(
+                Variables={},
+            )
 
         code_changed = local_hash != remote_hash
         config_changed = any(k for k in local_config if local_config[k] != remote_config[k])
@@ -327,6 +329,9 @@ class LambdaModule:
         if 'Layers' not in config:
             data.pop('Layers', None)
 
+        if 'Environment' not in config:
+            data.pop('Environment', None)
+
         result = self.make_result(data)
 
         if code_changed or config_changed:
@@ -336,9 +341,6 @@ class LambdaModule:
 
     def update_function_configuration(self, args, changed):
         if changed and not self.check_mode:
-            if not args['Environment']:
-                del args['Environment']
-
             result = self.al.update_function_configuration(**args)
 
             self.wait_on_function()
@@ -419,7 +421,9 @@ class LambdaModule:
             'Description': self.params['description'],
             'Timeout': self.params['timeout'],
             'MemorySize': self.params['memory_size'],
-            'Environment': None,
+            'Environment': {
+                'Variables': self.params['environment'] or {},
+            },
             'Layers': self.params['layers'] or [],
             'LoggingConfig': {
                 'LogFormat': self.params['log_format'],
@@ -433,11 +437,6 @@ class LambdaModule:
                 ApplicationLogLevel=self.params['application_log_level'].upper(),
                 SystemLogLevel=self.params['system_log_level'].upper(),
             )
-
-        if self.params['environment']:
-            args['Environment'] = {
-                'Variables': self.params['environment'],
-            }
 
         return args
 
