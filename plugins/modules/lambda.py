@@ -309,10 +309,6 @@ class LambdaModule:
             # force code update (and publishing) since version found is $LATEST
             code_changed = True
 
-        if self.params['publish'] and config_changed and not code_changed:
-            # force code update (and publishing) since updating config alone doesn't support publishing
-            code_changed = True
-
         if self.params['publish'] and remote_function['Version'] != '$LATEST' and (code_changed or config_changed):
             # when publishing changes we must update config and code since we can only publish from latest
             code_changed = True
