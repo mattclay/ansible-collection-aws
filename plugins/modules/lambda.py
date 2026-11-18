@@ -301,7 +301,7 @@ class LambdaModule:
             remote_config['Layers'] = []
 
         code_changed = local_hash != remote_hash
-        config_changed = any(k for k in local_config if not self.are_equal(local_config[k], remote_config[k]))
+        config_changed = any(k for k in local_config if local_config[k] != remote_config[k])
 
         if self.params['publish'] and remote_function['Version'] == '$LATEST':
             # force code update (and publishing) since version found is $LATEST
@@ -333,20 +333,6 @@ class LambdaModule:
             return True, result
 
         return False, result
-
-    def are_equal(self, first, second):
-        if isinstance(first, dict):
-            if not isinstance(second, dict):
-                return False
-
-            for key in set(first) | set(second):
-                if key not in first or key not in second:
-                    return False
-
-                if not self.are_equal(first[key], second[key]):
-                    return False
-
-        return first == second
 
     def update_function_configuration(self, args, changed):
         if changed and not self.check_mode:
