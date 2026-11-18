@@ -45,6 +45,10 @@ options:
             - absent
         default: present
         type: str
+    max_items:
+        description:
+            - The maximum number of layers to query in a single API call.
+        type: int
 '''
 
 EXAMPLES = '''
@@ -76,13 +80,14 @@ def main():
         path=dict(type='path'),
         license_info=dict(type='str'),
         state=dict(default='present', type='str', choices=['present', 'absent']),
+        max_items=dict(type='int'),
     )
 
     module = AwsModule(
         argument_spec=argument_spec,
         supports_check_mode=True,
         required_if=[
-            ['state', 'present', ['path']],
+            ['state', 'present', ['description', 'compatible_runtimes', 'path', 'license_info']],
         ],
     )
 
@@ -103,6 +108,7 @@ class LambdaLayerModule:
         self.compatible_runtimes = params['compatible_runtimes']
         self.license_info = params['license_info']
         self.path = params['path']
+        self.max_items = params['max_items']
 
     def run(self):
         self.lambda_client = LambdaClient(self.module)
@@ -118,7 +124,7 @@ class LambdaLayerModule:
         latest_layer_version = {}
         version_numbers_to_delete = []
 
-        for layer_version in self.lambda_client.enumerate_layer_versions(self.name):
+        for layer_version in self.lambda_client.enumerate_layer_versions(self.name, self.max_items):
             version_numbers_to_delete.append(layer_version['Version'])
 
             if not latest_layer_version or layer_version['Version'] > latest_layer_version['Version']:
@@ -171,7 +177,7 @@ class LambdaLayerModule:
     def layer_absent(self):
         changed = False
 
-        for layer_version in self.lambda_client.enumerate_layer_versions(self.name):
+        for layer_version in self.lambda_client.enumerate_layer_versions(self.name, self.max_items):
             changed = True
 
             if not self.check_mode:
@@ -193,10 +199,7 @@ class LambdaLayerModule:
             if 'ResponseMetadata' in layer_version:
                 del layer_version['ResponseMetadata']
 
-            content = layer_version.get('Content')
-
-            if content and 'Location' in content:
-                del content['Location']
+            layer_version.get('Content').pop('Location')
 
             layer = camel_dict_to_snake_dict(layer_version)
 
@@ -269,7 +272,7 @@ class LambdaClient:
 
         return layer_version
 
-    def enumerate_layer_versions(self, layer_name):
+    def enumerate_layer_versions(self, layer_name, max_items):
         """
         :type layer_name: str
         :rtype: Iterable[dict[str, any]]
@@ -280,6 +283,9 @@ class LambdaClient:
             request = dict(
                 LayerName=layer_name,
             )
+
+            if max_items:
+                request.update(MaxItems=max_items)
 
             if marker:
                 request.update(

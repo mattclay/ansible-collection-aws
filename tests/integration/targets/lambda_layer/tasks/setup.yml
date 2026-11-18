@@ -1,4 +1,7 @@
-- name: Create a Lambda layer
+- name: Create a Lambda layer archive
   lambda_package:
-    src: "{{ role_path }}/files/layer"
-    dest: "{{ output_dir }}/layer.zip"
+    src: "{{ role_path }}/files/{{ item }}"
+    dest: "{{ output_dir }}/{{ item }}.zip"
+  loop:
+    - create
+    - update

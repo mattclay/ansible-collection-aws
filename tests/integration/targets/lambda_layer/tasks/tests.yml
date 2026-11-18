@@ -2,7 +2,7 @@
   lambda_layer:
     name: "{{ resource_prefix }}-layer"
     description: "Test layer"
-    path: "{{ output_dir }}/layer.zip"
+    path: "{{ output_dir }}/create.zip"
     compatible_runtimes:
       - "python{{ (ansible_facts.python_version | split('.'))[:2] | join('.') }}"
     license_info: GPL-3.0-only
@@ -13,7 +13,7 @@
   lambda_layer:
     name: "{{ resource_prefix }}-layer"
     description: "Test layer"
-    path: "{{ output_dir }}/layer.zip"
+    path: "{{ output_dir }}/create.zip"
     compatible_runtimes:
       - "python{{ (ansible_facts.python_version | split('.'))[:2] | join('.') }}"
     license_info: GPL-3.0-only
@@ -23,11 +23,50 @@
   lambda_layer:
     name: "{{ resource_prefix }}-layer"
     description: "Test layer"
-    path: "{{ output_dir }}/layer.zip"
+    path: "{{ output_dir }}/create.zip"
     compatible_runtimes:
       - "python{{ (ansible_facts.python_version | split('.'))[:2] | join('.') }}"
     license_info: GPL-3.0-only
   register: create_unchanged
+
+- name: Create an extra Lambda layer to facilitate testing
+  publish_layer_version:
+    name: "{{ resource_prefix }}-layer"
+    path: "{{ output_dir }}/create.zip"
+
+- name: Update the Lambda layer (check)
+  lambda_layer:
+    name: "{{ resource_prefix }}-layer"
+    description: "Test layer"
+    path: "{{ output_dir }}/update.zip"
+    compatible_runtimes:
+      - "python{{ (ansible_facts.python_version | split('.'))[:2] | join('.') }}"
+    license_info: GPL-3.0-only
+    max_items: 1
+  check_mode: yes
+  register: update_check
+
+- name: Update the Lambda layer (changed)
+  lambda_layer:
+    name: "{{ resource_prefix }}-layer"
+    description: "Test layer"
+    path: "{{ output_dir }}/update.zip"
+    compatible_runtimes:
+      - "python{{ (ansible_facts.python_version | split('.'))[:2] | join('.') }}"
+    license_info: GPL-3.0-only
+    max_items: 1
+  register: update_changed
+
+- name: Update the Lambda layer (unchanged)
+  lambda_layer:
+    name: "{{ resource_prefix }}-layer"
+    description: "Test layer"
+    path: "{{ output_dir }}/update.zip"
+    compatible_runtimes:
+      - "python{{ (ansible_facts.python_version | split('.'))[:2] | join('.') }}"
+    license_info: GPL-3.0-only
+    max_items: 1
+  register: update_unchanged
 
 - name: Delete the Lambda layer (check)
   lambda_layer:
@@ -54,6 +93,9 @@
       - create_check is changed
       - create_changed is changed
       - create_unchanged is not changed
+      - update_check is changed
+      - update_changed is changed
+      - update_unchanged is not changed
       - delete_check is changed
       - delete_changed is changed
       - delete_unchanged is not changed
