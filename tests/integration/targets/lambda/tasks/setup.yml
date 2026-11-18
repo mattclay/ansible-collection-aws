@@ -19,6 +19,21 @@
     - original
     - updated
 
+- name: Create a Lambda layer archive
+  lambda_package:
+    src: "{{ role_path }}/files/layer"
+    dest: "{{ output_dir }}/layer.zip"
+
+- name: Publish a Lambda layer
+  lambda_layer:
+    name: "{{ lambda_layer_name }}"
+    description: Test layer
+    compatible_runtimes:
+      - "{{ runtime }}"
+    license_info: GPL-3.0-only
+    path: "{{ output_dir }}/layer.zip"
+  register: lambda_layer
+
 - name: Wait for role to be usable
   pause:
     seconds: 10

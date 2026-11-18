@@ -270,9 +270,6 @@ class LambdaModule:
         args['Publish'] = self.params['publish']
 
         if not self.check_mode:
-            if not args['Layers']:
-                del args['Layers']
-
             if not args['Environment']:
                 del args['Environment']
 
@@ -300,6 +297,9 @@ class LambdaModule:
 
         remote_config = {k: remote_function.get(k, None) for k in local_config}
 
+        if not remote_config.get('Layers'):
+            remote_config['Layers'] = []
+
         code_changed = local_hash != remote_hash
         config_changed = any(k for k in local_config if not self.are_equal(local_config[k], remote_config[k]))
 
@@ -324,6 +324,9 @@ class LambdaModule:
         data.update(config)
         data.update(code)
 
+        if 'Layers' not in config:
+            data.pop('Layers', None)
+
         result = self.make_result(data)
 
         if code_changed or config_changed:
@@ -347,9 +350,6 @@ class LambdaModule:
 
     def update_function_configuration(self, args, changed):
         if changed and not self.check_mode:
-            if not args['Layers']:
-                del args['Layers']
-
             if not args['Environment']:
                 del args['Environment']
 
@@ -399,7 +399,7 @@ class LambdaModule:
             timeout=data['Timeout'],
             memory_size=data['MemorySize'],
             environment=(data.get('Environment') or {}).get('Variables') or {},
-            layers=data.get('Layers'),
+            layers=[layer['Arn'] if isinstance(layer, dict) else layer for layer in data.get('Layers') or []],
             log_format=data['LoggingConfig']['LogFormat'],
             log_group=data['LoggingConfig']['LogGroup'],
         )
@@ -434,7 +434,7 @@ class LambdaModule:
             'Timeout': self.params['timeout'],
             'MemorySize': self.params['memory_size'],
             'Environment': None,
-            'Layers': self.params['layers'],
+            'Layers': self.params['layers'] or [],
             'LoggingConfig': {
                 'LogFormat': self.params['log_format'],
                 'LogGroup': self.params['log_group'] or f'/aws/lambda/{self.params["function_name"]}',
