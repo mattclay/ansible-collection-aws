@@ -1,5 +1,5 @@
 # Copyright (C) 2017 Matt Clay <matt@mystile.com>
-# GNU General Public License v3.0+ (see LICENSE.md or https://www.gnu.org/licenses/gpl-3.0.txt)
+# GNU General Public License v3.0+ (see LICENSE or https://www.gnu.org/licenses/gpl-3.0.txt)
 
 from __future__ import annotations
 
