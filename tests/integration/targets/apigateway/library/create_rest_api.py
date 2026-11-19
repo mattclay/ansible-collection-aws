@@ -20,7 +20,7 @@ def main() -> None:
 
     config = botocore.config.Config(
         retries=dict(
-            total_max_attempts=20,
+            total_max_attempts=30,
         )
     )
 

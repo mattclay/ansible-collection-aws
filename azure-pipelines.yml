@@ -77,11 +77,17 @@ stages:
           - bash: ansible-galaxy collection install -r tests/requirements.yml -p ../../../ansible_collections
             displayName: Install Test Requirements (galaxy)
 
-          - bash: ansible-test sanity --docker -v --color
+          - bash: ansible-test sanity --docker -v --color --coverage
             displayName: Run Sanity Tests
 
-          - bash: ansible-test integration --docker -v --color
+          - bash: ansible-test integration --docker -v --color --coverage
             displayName: Run Integration Tests
 
           - bash: ansible-galaxy collection build
             displayName: Run Galaxy Build
+
+          - bash: ansible-test coverage report --venv -v | tee ~/coverage.txt
+            displayName: Report Code Coverage
+
+          - bash: grep '^TOTAL .* 100%$' ~/coverage.txt
+            displayName: Verify Code Coverage

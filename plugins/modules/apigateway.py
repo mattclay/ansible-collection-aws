@@ -106,7 +106,7 @@ def main():
         ],
     )
 
-    module.total_max_attempts = 20
+    module.total_max_attempts = 30
 
     ag = ApiGatewayModule(module, module.check_mode, module.params)
 
