@@ -1,6 +1,6 @@
 - name: Create the Lambda layer (check)
   lambda_layer:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     description: "Test layer"
     path: "{{ output_dir }}/create.zip"
     compatible_runtimes:
@@ -11,7 +11,7 @@
 
 - name: Create the Lambda layer (changed)
   lambda_layer:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     description: "Test layer"
     path: "{{ output_dir }}/create.zip"
     compatible_runtimes:
@@ -21,7 +21,7 @@
 
 - name: Create the Lambda layer (unchanged)
   lambda_layer:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     description: "Test layer"
     path: "{{ output_dir }}/create.zip"
     compatible_runtimes:
@@ -31,12 +31,12 @@
 
 - name: Create an extra Lambda layer to facilitate testing
   publish_layer_version:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     path: "{{ output_dir }}/create.zip"
 
 - name: Update the Lambda layer (check)
   lambda_layer:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     description: "Test layer"
     path: "{{ output_dir }}/update.zip"
     compatible_runtimes:
@@ -48,7 +48,7 @@
 
 - name: Update the Lambda layer (changed)
   lambda_layer:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     description: "Test layer"
     path: "{{ output_dir }}/update.zip"
     compatible_runtimes:
@@ -59,7 +59,7 @@
 
 - name: Update the Lambda layer (unchanged)
   lambda_layer:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     description: "Test layer"
     path: "{{ output_dir }}/update.zip"
     compatible_runtimes:
@@ -70,20 +70,20 @@
 
 - name: Delete the Lambda layer (check)
   lambda_layer:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     state: absent
   check_mode: yes
   register: delete_check
 
 - name: Delete the Lambda layer (changed)
   lambda_layer:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     state: absent
   register: delete_changed
 
 - name: Delete the Lambda layer (unchanged)
   lambda_layer:
-    name: "{{ resource_prefix }}-layer"
+    name: "{{ resource_prefix }}-lambda-layer"
     state: absent
   register: delete_unchanged
 

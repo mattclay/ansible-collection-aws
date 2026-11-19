@@ -270,12 +270,6 @@ class LambdaModule:
         args['Publish'] = self.params['publish']
 
         if not self.check_mode:
-            if not args['Layers']:
-                del args['Layers']
-
-            if not args['Environment']:
-                del args['Environment']
-
             api = self.al.create_function(**args)
 
             self.wait_on_create()
@@ -283,7 +277,7 @@ class LambdaModule:
             result = self.make_result(api)
         else:
             result = self.make_result(args)
-            result['version'] = 1
+            result['version'] = "1"
 
         return True, result
 
@@ -300,15 +294,19 @@ class LambdaModule:
 
         remote_config = {k: remote_function.get(k, None) for k in local_config}
 
+        if not remote_config.get('Layers'):
+            remote_config['Layers'] = []
+
+        if not remote_config.get('Environment'):
+            remote_config['Environment'] = dict(
+                Variables={},
+            )
+
         code_changed = local_hash != remote_hash
-        config_changed = any(k for k in local_config if not self.are_equal(local_config[k], remote_config[k]))
+        config_changed = any(k for k in local_config if local_config[k] != remote_config[k])
 
         if self.params['publish'] and remote_function['Version'] == '$LATEST':
             # force code update (and publishing) since version found is $LATEST
-            code_changed = True
-
-        if self.params['publish'] and config_changed and not code_changed:
-            # force code update (and publishing) since updating config alone doesn't support publishing
             code_changed = True
 
         if self.params['publish'] and remote_function['Version'] != '$LATEST' and (code_changed or config_changed):
@@ -324,35 +322,23 @@ class LambdaModule:
         data.update(config)
         data.update(code)
 
+        changed = code_changed or config_changed
+
+        if changed and self.check_mode:
+            data.update(Version='$LATEST')  # cannot predict next version
+
+        if 'Layers' not in config:
+            data.pop('Layers', None)
+
+        if 'Environment' not in config:
+            data.pop('Environment', None)
+
         result = self.make_result(data)
 
-        if code_changed or config_changed:
-            return True, result
-
-        return False, result
-
-    def are_equal(self, first, second):
-        if isinstance(first, dict):
-            if not isinstance(second, dict):
-                return False
-
-            for key in set(first) | set(second):
-                if key not in first or key not in second:
-                    return False
-
-                if not self.are_equal(first[key], second[key]):
-                    return False
-
-        return first == second
+        return changed, result
 
     def update_function_configuration(self, args, changed):
         if changed and not self.check_mode:
-            if not args['Layers']:
-                del args['Layers']
-
-            if not args['Environment']:
-                del args['Environment']
-
             result = self.al.update_function_configuration(**args)
 
             self.wait_on_function()
@@ -399,7 +385,7 @@ class LambdaModule:
             timeout=data['Timeout'],
             memory_size=data['MemorySize'],
             environment=(data.get('Environment') or {}).get('Variables') or {},
-            layers=data.get('Layers'),
+            layers=[layer['Arn'] if isinstance(layer, dict) else layer for layer in data.get('Layers') or []],
             log_format=data['LoggingConfig']['LogFormat'],
             log_group=data['LoggingConfig']['LogGroup'],
         )
@@ -433,8 +419,10 @@ class LambdaModule:
             'Description': self.params['description'],
             'Timeout': self.params['timeout'],
             'MemorySize': self.params['memory_size'],
-            'Environment': None,
-            'Layers': self.params['layers'],
+            'Environment': {
+                'Variables': self.params['environment'] or {},
+            },
+            'Layers': self.params['layers'] or [],
             'LoggingConfig': {
                 'LogFormat': self.params['log_format'],
                 'LogGroup': self.params['log_group'] or f'/aws/lambda/{self.params["function_name"]}',
@@ -447,11 +435,6 @@ class LambdaModule:
                 ApplicationLogLevel=self.params['application_log_level'].upper(),
                 SystemLogLevel=self.params['system_log_level'].upper(),
             )
-
-        if self.params['environment']:
-            args['Environment'] = {
-                'Variables': self.params['environment'],
-            }
 
         return args
 
